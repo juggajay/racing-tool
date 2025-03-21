@@ -10,12 +10,6 @@ export default function RaceDetailPage({
   
   return (
     <main className="flex min-h-screen flex-col p-6">
-      {/* Rest of your component */}
-    </main>
-  )
-}
-
-    <main className="flex min-h-screen flex-col p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
           <Link href="/races" className="text-sm text-blue-400 hover:text-blue-300 mb-2 inline-block">
