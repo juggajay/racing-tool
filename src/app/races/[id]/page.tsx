@@ -1,8 +1,13 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export default function RaceDetailPage({ params }: { params: { id: string } }) {
-  // @ts-ignore
+type Props = {
+  params: { id: string }
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+export default function RaceDetailPage({ params }: Props) {
+  
   const raceId = params.id;
   
   return (
