@@ -1,13 +1,12 @@
-// default open-next.config.ts file created by @opennextjs/cloudflare
-
-import cache from "@opennextjs/cloudflare/kvCache";
+// This file is only needed for Cloudflare deployments
+// For Vercel deployments, we can use a simplified version
 
 const config = {
   default: {
     override: {
-      wrapper: "cloudflare-node",
+      wrapper: "default",
       converter: "edge",
-      incrementalCache: async () => cache,
+      incrementalCache: async () => ({}),
       tagCache: "dummy",
       queue: "dummy",
     },
@@ -16,7 +15,7 @@ const config = {
   middleware: {
     external: true,
     override: {
-      wrapper: "cloudflare-edge",
+      wrapper: "default",
       converter: "edge",
       proxyExternalRequest: "fetch",
     },
