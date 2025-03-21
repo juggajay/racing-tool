@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { Params } from "next/dist/shared/lib/router/utils/route-matcher"
 
 export default async function RaceDetailPage({
   params,
