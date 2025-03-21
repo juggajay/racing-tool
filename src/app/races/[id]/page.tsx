@@ -1,16 +1,20 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-type Props = {
+export default function RaceDetailPage({
+  params,
+}: {
   params: { id: string }
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
-export default function RaceDetailPage({ params }: Props) {
-  
+}) {
   const raceId = params.id;
   
   return (
+    <main className="flex min-h-screen flex-col p-6">
+      {/* Rest of your component */}
+    </main>
+  )
+}
+
     <main className="flex min-h-screen flex-col p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
