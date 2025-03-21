@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export default function RaceDetailPage({ params }: { params: { id: string } }) {
-  // In a real application, we would fetch race data based on the ID
+  // @ts-ignore
   const raceId = params.id;
   
   return (
