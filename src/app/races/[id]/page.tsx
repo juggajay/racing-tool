@@ -1,15 +1,16 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Params } from "next/dist/shared/lib/router/utils/route-matcher"
 
-export default async function RaceDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+// Change the function signature to use a simpler approach
+export default async function RaceDetailPage({ params }: any) {
   const raceId = params.id;
   
+  // Rest of your code remains unchanged
   return (
+    // ...
+  )
+}
+
     <main className="flex min-h-screen flex-col p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
