@@ -10,6 +10,7 @@
     "export": "next export"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^latest",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
@@ -53,8 +54,7 @@
     "sonner": "^2.0.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "vaul": "^1.1.2",
-    "@opennextjs/cloudflare": "^latest"
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",
