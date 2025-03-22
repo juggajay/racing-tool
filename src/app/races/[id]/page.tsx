@@ -5,12 +5,7 @@ import Link from "next/link"
 export default async function RaceDetailPage({ params }: any) {
   const raceId = params.id;
   
-  // Rest of your code remains unchanged
   return (
-    // ...
-  )
-}
-
     <main className="flex min-h-screen flex-col p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
