@@ -14,9 +14,9 @@ const nextConfig = {
   images: {
     unoptimized: true, // Changed to true for Vercel deployment
   },
-  // Add performance optimizations for mobile
+  // Remove CSS optimization that requires critters package
   experimental: {
-    optimizeCss: true, // Enables CSS optimization
+    optimizeCss: false, // Disabled to avoid critters dependency
     optimizePackageImports: ['@/components/ui'],
   },
   // Add responsive headers
