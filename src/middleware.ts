@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Check if the path is public
-  const isPublicPath = publicPaths.some(path => 
+  const isPublicPath = publicPaths.some(path =>
     pathname === path || pathname.startsWith(path + '/')
   );
   
@@ -46,7 +46,11 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - API routes that need to use cookies
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/auth/me|api/auth/login|api/auth/logout).*)',
   ],
 };
+
+// Export the Edge Runtime flag
+export const runtime = 'edge';

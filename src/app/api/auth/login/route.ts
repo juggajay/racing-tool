@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
 // In a real application, you would use a database to store and retrieve user data
 // This is a simplified example for demonstration purposes
@@ -13,7 +12,9 @@ const USERS = [
   }
 ];
 
-export async function POST(request: Request) {
+export const runtime = 'edge';
+
+export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
     
@@ -47,22 +48,27 @@ export async function POST(request: Request) {
     // Create a session token (in a real app, this would be a JWT or other secure token)
     const token = `token_${user.id}_${Date.now()}`;
     
+    // Create a response
+    const response = NextResponse.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name
+      }
+    });
+    
     // Set the token in a cookie
-    cookies().set({
+    response.cookies.set({
       name: 'auth-token',
       value: token,
       httpOnly: true,
       path: '/',
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: 60 * 60 * 24 * 7, // 1 week
     });
     
-    // Return success response with user data (excluding password)
-    const { password: _, ...userData } = user;
-    return NextResponse.json({
-      message: 'Login successful',
-      user: userData
-    });
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

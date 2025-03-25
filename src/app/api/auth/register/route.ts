@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // In a real application, you would use a database to store and retrieve user data
 // This is a simplified example for demonstration purposes
@@ -12,7 +12,9 @@ const USERS = [
   }
 ];
 
-export async function POST(request: Request) {
+export const runtime = 'edge';
+
+export async function POST(request: NextRequest) {
   try {
     const { email, password, fullName } = await request.json();
     

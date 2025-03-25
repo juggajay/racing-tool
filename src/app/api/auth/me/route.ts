@@ -1,5 +1,4 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
 // In a real application, you would use a database to store and retrieve user data
 // This is a simplified example for demonstration purposes
@@ -13,10 +12,12 @@ const USERS = [
   }
 ];
 
-export async function GET() {
+export const runtime = 'edge';
+
+export async function GET(request: NextRequest) {
   try {
     // Get the authentication token from cookies
-    const authToken = cookies().get('auth-token')?.value;
+    const authToken = request.cookies.get('auth-token')?.value;
     
     if (!authToken) {
       return NextResponse.json(

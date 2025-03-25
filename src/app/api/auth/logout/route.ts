@@ -1,14 +1,18 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST() {
+export const runtime = 'edge';
+
+export async function POST(request: NextRequest) {
   try {
-    // Clear the auth token cookie
-    cookies().delete('auth-token');
-    
-    return NextResponse.json({
+    // Create a response
+    const response = NextResponse.json({
       message: 'Logout successful'
     });
+    
+    // Clear the auth token cookie
+    response.cookies.delete('auth-token');
+    
+    return response;
   } catch (error) {
     console.error('Logout error:', error);
     return NextResponse.json(
