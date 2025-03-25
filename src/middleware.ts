@@ -53,4 +53,4 @@ export const config = {
 };
 
 // Export the Edge Runtime flag
-export const runtime = 'edge';
+export const runtime = 'experimental-edge';
