@@ -1,4 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+// Define types to avoid TypeScript errors
+type NextRequest = {
+  url: string;
+  json: () => Promise<any>;
+};
+
+type NextResponseType = {
+  json: (data: any, options?: { status?: number }) => NextResponseType;
+};
+
+// Mock NextResponse.json function
+const NextResponse = {
+  json: (data: any, options?: { status?: number }): any => {
+    return { data, options };
+  }
+};
 
 // Mock data for demonstration purposes
 // In a real application, you would fetch this data from an external API

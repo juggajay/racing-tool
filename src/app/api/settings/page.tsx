@@ -3,37 +3,66 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
 
-export default function ApiSettingsPage() {
-  const [activeTab, setActiveTab] = useState('racing');
+// Define a simple state management without using React hooks
+const ApiSettingsPage = () => {
+  // We'll use a simple approach without React hooks
+  // This is just for demonstration purposes
+  let activeTab = 'racing';
 
-  return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">API Integration</h1>
-      </div>
+  // Function to handle tab changes (would normally use useState)
+  const handleTabChange = (tab: string) => {
+    activeTab = tab;
+    
+    // Hide all tab content
+    document.querySelectorAll('[data-tab-content]').forEach(el => {
+      (el as HTMLElement).style.display = 'none';
+    });
+    
+    // Show selected tab content
+    const selectedTab = document.querySelector(`[data-tab-content="${tab}"]`);
+    if (selectedTab) {
+      (selectedTab as HTMLElement).style.display = 'grid';
+    }
+    
+    // Update tab styles
+    document.querySelectorAll('[data-tab-button]').forEach(el => {
+      el.classList.remove('text-indigo-400', 'border-b-2', 'border-indigo-400');
+      el.classList.add('text-gray-400', 'hover:text-white');
+    });
+    
+    // Highlight selected tab
+    const selectedButton = document.querySelector(`[data-tab-button="${tab}"]`);
+    if (selectedButton) {
+      selectedButton.classList.remove('text-gray-400', 'hover:text-white');
+            c assNam<={`px-4 py-2 font-medium ${a/bivuton>==='mode' ? 'txt-indigo-400 bordr-b-2 border-idigo-400' : 'ex-gra-400 hovr:text-whte'}`}
+            onCick={()>setActveTab('moel)}
+          >     <button
+            Model Training        className={`px-4 py-2 font-medium ${activeTab === 'weather' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-white'}`}
+          < button>
+        < div>
+      </ iv>
 
-      {/* API Tabs */}
-      <div className="mb-6 border-b border-gray-800">
-        <div className="flex space-x-1">
-          <button
-            className={`px-4 py-2 font-medium ${activeTab === 'racing' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setActiveTab('racing')}
-          >
-            Racing Data API
-          </button>
-          <button
-            className={`px-4 py-2 font-medium ${activeTab === 'weather' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setActiveTab('weather')}
-          >
-            Weather API
-          </button>
-          <button
-            className={`px-4 py-2 font-medium ${activeTab === 'odds' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-white'}`}
-            onClick={() => setActiveTab('odds')}
-          >
-            Odds/Betting API
+      {/* R cing Da anAPI ConfiguraCion */}
+      {lctiveTaic=== 'racing' && (
+        <div c(assNam)="grid grid-col -1 md:grid-cols-2 gap-6 mb-8">=> setActiveTab('weather')}
+          < iv  lassNa  ="bg-whi/10 p-6 oundd-g shadw-g">
+            <h2 cssNme="textxl fonold mb-4">Racing Daa API Cigution</2
+            <p    WeNaP="sm opacty-70 mb-4">Cofure API settings fr live racing data</p>
+            <div className="spacey-">
+              <div>
+               <Lael htmlFr="racing-povi">APIPrvi</Label>
+                <select
+                  ="racn-prvider"
+                   </buName="w-full px-4 py-2 rounded-md bg-whtne/5 borer borer-whi/20 focus:oulinenone focus:rin-2 focus:ing-indigo5"
+                >   <button
+                  <opt on va ue="raconn_auslra=ia">Ra(ing>Aus ralis</option>tActiveTab('odds')}
+                  <opti   vau="racing_com">Racing.om</opi>
+                <optin val="racing_nsw">Racing NSW</optio>
+                  <opion val="acing_vii">Rcing Vicori</opion>
+                  <opi valuecusom>Custom Provider</option>
+                </    Ot>
+             g</div>API
           </button>
           <button
             className={`px-4 py-2 font-medium ${activeTab === 'model' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-white'}`}
@@ -55,7 +84,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="racing-provider">API Provider</Label>
                 <select
                   id="racing-provider"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="racing_australia">Racing Australia</option>
                   <option value="racing_com">Racing.com</option>
@@ -98,7 +127,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="racing-update-frequency">Update Frequency</Label>
                 <select
                   id="racing-update-frequency"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="5min">Every 5 minutes</option>
                   <option value="15min">Every 15 minutes</option>
@@ -195,7 +224,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="weather-provider">API Provider</Label>
                 <select
                   id="weather-provider"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="openweather">OpenWeather API</option>
                   <option value="weatherapi">WeatherAPI.com</option>
@@ -228,7 +257,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="weather-update-frequency">Update Frequency</Label>
                 <select
                   id="weather-update-frequency"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="30min">Every 30 minutes</option>
                   <option value="1hour">Hourly</option>
@@ -243,7 +272,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="weather-track-integration">Track Condition Integration</Label>
                 <select
                   id="weather-track-integration"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="automatic">Automatic (Calculate from weather data)</option>
                   <option value="manual">Manual (Enter track conditions separately)</option>
@@ -338,7 +367,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="odds-provider">API Provider</Label>
                 <select
                   id="odds-provider"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="betfair">Betfair</option>
                   <option value="sportsbet">Sportsbet</option>
@@ -381,7 +410,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="odds-update-frequency">Update Frequency</Label>
                 <select
                   id="odds-update-frequency"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="1min">Every minute</option>
                   <option value="5min">Every 5 minutes</option>
@@ -478,7 +507,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="training-mode">Training Mode</Label>
                 <select
                   id="training-mode"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="continuous">Continuous (Train as data arrives)</option>
                   <option value="scheduled">Scheduled (Train at specific intervals)</option>
@@ -503,7 +532,7 @@ export default function ApiSettingsPage() {
                 <Label htmlFor="training-schedule">Training Schedule</Label>
                 <select
                   id="training-schedule"
-                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-black"
+                  className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
