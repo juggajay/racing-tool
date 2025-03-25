@@ -2,13 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { D1Database } from '@cloudflare/workers-types';
 
-interface Env {
-  DB: D1Database;
-}
+// In-memory storage for demonstration purposes
+// In a real application, you would use a database
+const users = [
+  {
+    id: 1,
+    username: 'admin',
+    email: 'admin@example.com',
+    password_hash: '$2a$10$JwU8S5vRVVH.iVMv1yCkZOQgX0XW6H1zXpBJ5o9X2MaW1LWle1bJe', // admin123
+    role: 'admin'
+  }
+];
 
-export async function POST(request: NextRequest, { env }: { env: Env }) {
+const sessions: Record<string, { user_id: number, expires_at: string }> = {};
+
+export async function POST(request: NextRequest) {
   try {
     const { username, password, action } = await request.json();
 
@@ -20,12 +29,8 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
     }
 
     if (action === 'login') {
-      // Get user from database
-      const user = await env.DB.prepare(
-        'SELECT id, username, password_hash, role FROM users WHERE username = ?'
-      )
-        .bind(username)
-        .first();
+      // Find user
+      const user = users.find(u => u.username === username);
 
       if (!user) {
         return NextResponse.json(
@@ -52,11 +57,10 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
-      await env.DB.prepare(
-        'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
-      )
-        .bind(sessionId, user.id, expiresAt.toISOString())
-        .run();
+      sessions[sessionId] = {
+        user_id: user.id,
+        expires_at: expiresAt.toISOString()
+      };
 
       // Set cookie
       cookies().set({
@@ -78,11 +82,7 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
       });
     } else if (action === 'register') {
       // Check if user already exists
-      const existingUser = await env.DB.prepare(
-        'SELECT id FROM users WHERE username = ?'
-      )
-        .bind(username)
-        .first();
+      const existingUser = users.find(u => u.username === username);
 
       if (existingUser) {
         return NextResponse.json(
@@ -96,18 +96,15 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Create user
-      const result = await env.DB.prepare(
-        'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)'
-      )
-        .bind(username, `${username}@example.com`, passwordHash, 'user')
-        .run();
-
-      if (!result.success) {
-        return NextResponse.json(
-          { error: 'Failed to create user' },
-          { status: 500 }
-        );
-      }
+      const newUser = {
+        id: users.length + 1,
+        username,
+        email: `${username}@example.com`,
+        password_hash: passwordHash,
+        role: 'user'
+      };
+      
+      users.push(newUser);
 
       return NextResponse.json({
         success: true,
@@ -117,12 +114,10 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
       // Get session ID from cookie
       const sessionId = cookies().get('session')?.value;
 
-      if (sessionId) {
-        // Delete session from database
-        await env.DB.prepare('DELETE FROM sessions WHERE id = ?')
-          .bind(sessionId)
-          .run();
-
+      if (sessionId && sessions[sessionId]) {
+        // Delete session
+        delete sessions[sessionId];
+        
         // Clear cookie
         cookies().delete('session');
       }
@@ -146,34 +141,30 @@ export async function POST(request: NextRequest, { env }: { env: Env }) {
   }
 }
 
-export async function GET(request: NextRequest, { env }: { env: Env }) {
+export async function GET(request: NextRequest) {
   try {
     // Get session ID from cookie
     const sessionId = cookies().get('session')?.value;
 
-    if (!sessionId) {
+    if (!sessionId || !sessions[sessionId]) {
       return NextResponse.json({ authenticated: false });
     }
 
-    // Get session from database
-    const session = await env.DB.prepare(
-      'SELECT s.id, s.user_id, s.expires_at, u.username, u.role FROM sessions s JOIN users u ON s.user_id = u.id WHERE s.id = ?'
-    )
-      .bind(sessionId)
-      .first();
-
-    if (!session) {
+    const session = sessions[sessionId];
+    
+    // Check if session is expired
+    if (new Date(session.expires_at) < new Date()) {
+      // Delete expired session
+      delete sessions[sessionId];
+      
       cookies().delete('session');
       return NextResponse.json({ authenticated: false });
     }
 
-    // Check if session is expired
-    if (new Date(session.expires_at) < new Date()) {
-      // Delete expired session
-      await env.DB.prepare('DELETE FROM sessions WHERE id = ?')
-        .bind(sessionId)
-        .run();
-
+    // Find user
+    const user = users.find(u => u.id === session.user_id);
+    
+    if (!user) {
       cookies().delete('session');
       return NextResponse.json({ authenticated: false });
     }
@@ -181,9 +172,9 @@ export async function GET(request: NextRequest, { env }: { env: Env }) {
     return NextResponse.json({
       authenticated: true,
       user: {
-        id: session.user_id,
-        username: session.username,
-        role: session.role,
+        id: user.id,
+        username: user.username,
+        role: user.role,
       },
     });
   } catch (error) {
