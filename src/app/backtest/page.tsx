@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from "react";
 import { Button } from "@/components/ui/button"
 import { FileUpload } from "@/components/ui/file-upload"
 import Link from "next/link"
@@ -7,10 +8,18 @@ import { useState } from "react";
 
 export default function BacktestPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [timePeriods, setTimePeriods] = useState<number>(5);
   
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
     console.log("File selected:", file?.name);
+  };
+  
+  const handleTimePeriodsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value >= 2 && value <= 10) {
+      setTimePeriods(value);
+    }
   };
 
   return (
@@ -44,7 +53,8 @@ export default function BacktestPage() {
                 className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 min="2"
                 max="10"
-                value="5"
+                value={timePeriods}
+                onChange={handleTimePeriodsChange}
               />
               <p className="mt-1 text-xs opacity-70">Number of time periods to use for backtesting (2-10)</p>
             </div>
