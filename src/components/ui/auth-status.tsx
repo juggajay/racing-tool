@@ -3,24 +3,27 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface User {
-  id: number
-  username: string
-  role: string
+  id: string
+  email: string
+  name: string
 }
 
 export function AuthStatus() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("/api/auth")
-        const data = await response.json()
-
-        if (data.authenticated) {
+        // Check if user is authenticated by trying to get user data
+        const response = await fetch("/api/auth/me")
+        
+        if (response.ok) {
+          const data = await response.json()
           setUser(data.user)
         } else {
           setUser(null)
@@ -38,38 +41,33 @@ export function AuthStatus() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "logout",
-          username: "",
-          password: "",
-        }),
+        }
       })
       setUser(null)
-      window.location.href = "/login"
+      router.push("/login")
     } catch (error) {
       console.error("Logout failed:", error)
     }
   }
 
   if (loading) {
-    return <div className="opacity-70">Loading...</div>
+    return <div className="opacity-70 text-sm">Loading...</div>
   }
 
   if (!user) {
     return (
-      <div className="flex space-x-2">
-        <Link href="/login">
-          <Button variant="outline" size="sm" className="opacity-100">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Link href="/login" className="w-full">
+          <Button variant="outline" size="sm" className="opacity-100 w-full">
             Sign In
           </Button>
         </Link>
-        <Link href="/register">
-          <Button size="sm">
+        <Link href="/register" className="w-full">
+          <Button size="sm" className="w-full">
             Register
           </Button>
         </Link>
@@ -78,20 +76,16 @@ export function AuthStatus() {
   }
 
   return (
-    <div className="flex items-center space-x-4">
-      <div className="text-sm">
+    <div className="flex flex-col sm:flex-row items-center gap-3 sm:space-x-4">
+      <div className="text-xs sm:text-sm text-center sm:text-left">
         <span className="opacity-70 mr-1">Signed in as</span>
-        <span className="font-medium">{user.username}</span>
-        {user.role === "admin" && (
-          <span className="ml-1 text-xs bg-indigo-500/30 text-indigo-200 px-1.5 py-0.5 rounded">
-            Admin
-          </span>
-        )}
+        <span className="font-medium">{user.name}</span>
+        <div className="text-xs opacity-70 truncate max-w-[120px]">{user.email}</div>
       </div>
       <Button
         variant="outline"
         size="sm"
-        className="opacity-100"
+        className="opacity-100 w-full sm:w-auto"
         onClick={handleLogout}
       >
         Sign Out
