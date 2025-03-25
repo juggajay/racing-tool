@@ -1,9 +1,18 @@
 'use client';
 
 import { Button } from "@/components/ui/button"
+import { FileUpload } from "@/components/ui/file-upload"
 import Link from "next/link"
+import { useState } from "react";
 
 export default function BacktestPage() {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  const handleFileChange = (file: File | null) => {
+    setSelectedFile(file);
+    console.log("File selected:", file?.name);
+  };
+
   return (
     <main className="flex min-h-screen flex-col p-6">
       <div className="flex justify-between items-center mb-8">
@@ -21,7 +30,7 @@ export default function BacktestPage() {
           <form className="space-y-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Prediction Model</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
                 <option value="ensemble" selected>Ensemble (Recommended)</option>
                 <option value="random_forest">Random Forest</option>
                 <option value="gradient_boosting">Gradient Boosting</option>
@@ -42,11 +51,26 @@ export default function BacktestPage() {
 
             <div>
               <label className="block mb-2 text-sm font-medium">Betting Strategy</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
                 <option value="value" selected>Value Betting</option>
                 <option value="favorite">Favorite</option>
                 <option value="probability">Highest Probability</option>
               </select>
+            </div>
+
+            <div>
+              <FileUpload 
+                label="Upload Dataset (CSV, Excel, or JSON)" 
+                helperText="Upload your historical race data for backtesting"
+                onFileChange={handleFileChange}
+                accept=".csv,.xlsx,.json"
+                id="dataset-upload"
+              />
+              {selectedFile && (
+                <p className="mt-2 text-sm text-green-400">
+                  File ready: {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+                </p>
+              )}
             </div>
 
             <Button className="w-full bg-blue-600 hover:bg-blue-700">Run Backtest</Button>
@@ -108,6 +132,65 @@ export default function BacktestPage() {
               it would use your historical race data.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Backend Settings Section */}
+      <div className="bg-white/10 p-6 rounded-lg shadow-lg mb-8">
+        <h2 className="text-xl font-bold mb-4">Backend Settings</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm font-medium">Computation Engine</label>
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                <option value="local" selected>Local (CPU)</option>
+                <option value="gpu">Local (GPU)</option>
+                <option value="cloud">Cloud Computing</option>
+              </select>
+              <p className="mt-1 text-xs opacity-70">Select where computations will be performed</p>
+            </div>
+            
+            <div>
+              <label className="block mb-2 text-sm font-medium">Parallel Processing</label>
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                <option value="1">Single Thread</option>
+                <option value="2" selected>2 Threads</option>
+                <option value="4">4 Threads</option>
+                <option value="8">8 Threads</option>
+                <option value="max">Maximum Available</option>
+              </select>
+              <p className="mt-1 text-xs opacity-70">Number of parallel threads to use for computation</p>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-2 text-sm font-medium">Cache Settings</label>
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                <option value="none">No Caching</option>
+                <option value="memory" selected>Memory Cache</option>
+                <option value="disk">Disk Cache</option>
+                <option value="both">Memory + Disk Cache</option>
+              </select>
+              <p className="mt-1 text-xs opacity-70">How to cache computation results</p>
+            </div>
+            
+            <div>
+              <label className="block mb-2 text-sm font-medium">Log Level</label>
+              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                <option value="error">Error Only</option>
+                <option value="warn">Warning</option>
+                <option value="info" selected>Information</option>
+                <option value="debug">Debug</option>
+                <option value="trace">Trace (Verbose)</option>
+              </select>
+              <p className="mt-1 text-xs opacity-70">Level of detail in computation logs</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-6 flex justify-end">
+          <Button className="bg-blue-600 hover:bg-blue-700">Save Backend Settings</Button>
         </div>
       </div>
 

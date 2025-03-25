@@ -5,16 +5,22 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
-interface FileUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FileUploadProps {
   label?: string
   helperText?: string
   onFileChange?: (file: File | null) => void
+  accept?: string
+  id?: string
+  className?: string
+  [key: string]: any // Allow any other props to be passed through
 }
 
 export function FileUpload({
   label,
   helperText,
   onFileChange,
+  accept,
+  id,
   className,
   ...props
 }: FileUploadProps) {
@@ -35,7 +41,7 @@ export function FileUpload({
 
   return (
     <div className="space-y-2">
-      {label && <Label htmlFor={props.id}>{label}</Label>}
+      {label && <Label htmlFor={id}>{label}</Label>}
       <div className="flex flex-col space-y-2">
         <div className="flex items-center space-x-2">
           <Button
@@ -60,6 +66,8 @@ export function FileUpload({
           ref={inputRef}
           className="hidden"
           onChange={handleFileChange}
+          accept={accept}
+          id={id}
           {...props}
         />
       </div>

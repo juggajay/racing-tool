@@ -25,3 +25,14 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* Make dropdown text black for better visibility */
+select {
+  color: black !important;
+}
+
+/* Ensure dropdown options are also black */
+option {
+  color: black !important;
+  background-color: white;
+}
