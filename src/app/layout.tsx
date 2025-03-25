@@ -1,10 +1,7 @@
-import './globals.css';
-import type { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Horse Racing Website',
-  description: 'A website for horse racing enthusiasts',
-};
+import './globals.css';
+import React from 'react';
 
 export default function RootLayout({
   children,
