@@ -1,11 +1,12 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AuthStatus } from '@/components/ui/auth-status';
+import { MobileNav } from '@/components/ui/mobile-nav';
 
 export const metadata: Metadata = {
   title: 'Horse Racing Website',
   description: 'A website for horse racing enthusiasts',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 };
 
 export default function RootLayout({
@@ -17,73 +18,31 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-gray-950 text-white">
         <div className="min-h-screen flex flex-col">
-          <header className="bg-indigo-950 border-b border-indigo-900">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex justify-between items-center">
-                <Link href="/" className="text-xl font-bold">
-                  Horse Racing Predictor
-                </Link>
-                <nav className="hidden md:flex space-x-6">
-                  <Link href="/" className="hover:text-indigo-400 transition-colors">
-                    Home
-                  </Link>
-                  <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">
-                    Dashboard
-                  </Link>
-                  <Link href="/races" className="hover:text-indigo-400 transition-colors">
-                    Races
-                  </Link>
-                  <Link href="/predict" className="hover:text-indigo-400 transition-colors">
-                    Predict
-                  </Link>
-                  <Link href="/backtest" className="hover:text-indigo-400 transition-colors">
-                    Backtest
-                  </Link>
-                  <Link href="/api/settings" className="hover:text-indigo-400 transition-colors">
-                    API Settings
-                  </Link>
-                </nav>
-                <div className="flex items-center space-x-4">
-                  <div className="md:hidden">
-                    <button className="text-white">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="hidden md:block">
-                    <AuthStatus />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </header>
+          <MobileNav />
 
-          <main className="flex-grow">
+          <main className="flex-grow pb-mobile-nav">
             {children}
           </main>
 
-          <footer className="bg-indigo-950 border-t border-indigo-900 py-6">
+          <footer className="bg-indigo-950 border-t border-indigo-900 py-4 md:py-6 mt-auto">
             <div className="container mx-auto px-4">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="mb-4 md:mb-0">
-                  <p className="text-sm opacity-70">
+                  <p className="text-xs md:text-sm text-white text-center md:text-left">
                     Australian Horse Racing Prediction System © 2025
                   </p>
                 </div>
-                <div className="flex space-x-4">
-                  <Link href="/about" className="text-sm hover:text-indigo-400 transition-colors">
+                <div className="flex flex-wrap justify-center gap-3 md:gap-4">
+                  <Link href="/about" className="text-xs md:text-sm text-white hover:text-indigo-400 transition-colors">
                     About
                   </Link>
-                  <Link href="/contact" className="text-sm hover:text-indigo-400 transition-colors">
+                  <Link href="/contact" className="text-xs md:text-sm text-white hover:text-indigo-400 transition-colors">
                     Contact
                   </Link>
-                  <Link href="/privacy" className="text-sm hover:text-indigo-400 transition-colors">
+                  <Link href="/privacy" className="text-xs md:text-sm text-white hover:text-indigo-400 transition-colors">
                     Privacy Policy
                   </Link>
-                  <Link href="/terms" className="text-sm hover:text-indigo-400 transition-colors">
+                  <Link href="/terms" className="text-xs md:text-sm text-white hover:text-indigo-400 transition-colors">
                     Terms of Service
                   </Link>
                 </div>

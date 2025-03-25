@@ -3,36 +3,151 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Mobile optimization variables */
+  --touch-target-size: 44px;
+  --mobile-padding: 16px;
+  --mobile-font-base: 16px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* Base styles */
+html {
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+  scroll-behavior: smooth;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #ffffff;
+  background-color: #111827; /* bg-gray-950 equivalent */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+}
+
+/* Mobile optimizations */
+@layer base {
+  /* Improve tap targets on mobile */
+  button, a, input, select, textarea {
+    @apply touch-manipulation;
+  }
+  
+  /* Prevent text from being too small on mobile */
+  html, body {
+    @apply text-base;
+  }
+  
+  /* Improve table display on mobile */
+  table {
+    @apply w-full;
+  }
+  
+  /* Prevent content from being hidden under fixed headers */
+  main {
+    @apply pt-safe pb-20; /* Added pb-20 to account for bottom navigation bar */
+    background-color: #111827; /* Ensure consistent background color */
+    min-height: 100vh; /* Full height */
+  }
+  
+  /* Ensure footer text is always visible */
+  footer {
+    background-color: #1e1b4b !important; /* bg-indigo-950 equivalent */
+    color: white !important;
+    margin-bottom: 56px !important; /* Space for bottom navigation on mobile */
+  }
+  
+  /* Ensure all text in footer is white */
+  footer * {
+    color: white !important;
+  }
+
+  /* Improve text visibility on gradient backgrounds */
+  h1, h2, h3, h4, h5, h6 {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Target specific gradient sections */
+  .bg-gradient-to-br, .bg-gradient-to-r {
+    position: relative;
+  }
+
+  .bg-gradient-to-br *, .bg-gradient-to-r * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Add a semi-transparent overlay to improve text contrast */
+  .bg-gradient-to-br::before, .bg-gradient-to-r::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4));
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Responsive table styles */
+@layer components {
+  .table-responsive {
+    @apply overflow-x-auto -mx-4 px-4;
+  }
+  
+  .table-responsive table {
+    @apply min-w-[500px];
+  }
 }
 
 /* Make dropdown text black for better visibility */
 select {
   color: black !important;
+  min-height: var(--touch-target-size);
 }
 
 /* Ensure dropdown options are also black */
 option {
   color: black !important;
   background-color: white;
+}
+
+/* Fix for iOS input zoom */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Animation delay utilities */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Safe area insets for notched devices */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mobile bottom navigation adjustments */
+@media screen and (max-width: 768px) {
+  /* Add padding to the bottom of the page to account for the navigation bar */
+  .pb-mobile-nav {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
 }
