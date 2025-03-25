@@ -69,7 +69,7 @@ export function AuthStatus() {
           </Button>
         </Link>
         <Link href="/register">
-          <Button className="bg-blue-600 hover:bg-blue-700" size="sm">
+          <Button size="sm">
             Register
           </Button>
         </Link>
@@ -83,7 +83,7 @@ export function AuthStatus() {
         <span className="opacity-70 mr-1">Signed in as</span>
         <span className="font-medium">{user.username}</span>
         {user.role === "admin" && (
-          <span className="ml-1 text-xs bg-blue-500/30 text-blue-200 px-1.5 py-0.5 rounded">
+          <span className="ml-1 text-xs bg-indigo-500/30 text-indigo-200 px-1.5 py-0.5 rounded">
             Admin
           </span>
         )}

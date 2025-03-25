@@ -17,29 +17,29 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-gray-950 text-white">
         <div className="min-h-screen flex flex-col">
-          <header className="bg-gray-900 border-b border-gray-800">
+          <header className="bg-indigo-950 border-b border-indigo-900">
             <div className="container mx-auto px-4 py-4">
               <div className="flex justify-between items-center">
                 <Link href="/" className="text-xl font-bold">
                   Horse Racing Predictor
                 </Link>
                 <nav className="hidden md:flex space-x-6">
-                  <Link href="/" className="hover:text-blue-400 transition-colors">
+                  <Link href="/" className="hover:text-indigo-400 transition-colors">
                     Home
                   </Link>
-                  <Link href="/dashboard" className="hover:text-blue-400 transition-colors">
+                  <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">
                     Dashboard
                   </Link>
-                  <Link href="/races" className="hover:text-blue-400 transition-colors">
+                  <Link href="/races" className="hover:text-indigo-400 transition-colors">
                     Races
                   </Link>
-                  <Link href="/predict" className="hover:text-blue-400 transition-colors">
+                  <Link href="/predict" className="hover:text-indigo-400 transition-colors">
                     Predict
                   </Link>
-                  <Link href="/backtest" className="hover:text-blue-400 transition-colors">
+                  <Link href="/backtest" className="hover:text-indigo-400 transition-colors">
                     Backtest
                   </Link>
-                  <Link href="/api/settings" className="hover:text-blue-400 transition-colors">
+                  <Link href="/api/settings" className="hover:text-indigo-400 transition-colors">
                     API Settings
                   </Link>
                 </nav>
@@ -65,7 +65,7 @@ export default function RootLayout({
             {children}
           </main>
 
-          <footer className="bg-gray-900 border-t border-gray-800 py-6">
+          <footer className="bg-indigo-950 border-t border-indigo-900 py-6">
             <div className="container mx-auto px-4">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="mb-4 md:mb-0">
@@ -74,16 +74,16 @@ export default function RootLayout({
                   </p>
                 </div>
                 <div className="flex space-x-4">
-                  <Link href="/about" className="text-sm hover:text-blue-400 transition-colors">
+                  <Link href="/about" className="text-sm hover:text-indigo-400 transition-colors">
                     About
                   </Link>
-                  <Link href="/contact" className="text-sm hover:text-blue-400 transition-colors">
+                  <Link href="/contact" className="text-sm hover:text-indigo-400 transition-colors">
                     Contact
                   </Link>
-                  <Link href="/privacy" className="text-sm hover:text-blue-400 transition-colors">
+                  <Link href="/privacy" className="text-sm hover:text-indigo-400 transition-colors">
                     Privacy Policy
                   </Link>
-                  <Link href="/terms" className="text-sm hover:text-blue-400 transition-colors">
+                  <Link href="/terms" className="text-sm hover:text-indigo-400 transition-colors">
                     Terms of Service
                   </Link>
                 </div>
