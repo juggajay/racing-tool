@@ -3,10 +3,9 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'http://old.puntingform.com.au/api'; // Updated based on test results
+const API_BASE_URL = 'https://www.puntingform.com.au/api/formdataservice'; // Primary URL from documentation
+const API_FALLBACK_URL = 'http://old.puntingform.com.au/api/formdataservice'; // Fallback URL for troubleshooting
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
-const API_USERNAME = 'apiuser'; // Default username for Basic auth
-const API_PASSWORD = API_KEY; // Using API key as password
 
 // Disable mock API as per user request
 const USE_MOCK_API = false;
@@ -35,55 +34,52 @@ export async function GET(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the test results
-    // The correct format is: baseUrl/service/endpoint/parameters
-    let service = '';
+    // Build the API URL based on the FormDataService documentation
+    let apiUrl = API_BASE_URL;
+    let includeBarrierTrials = false; // Default to false unless specified
     
-    // Determine which service to use based on the endpoint
+    // Determine which endpoint to use based on the requested data
     switch(endpoint) {
-      case 'races':
-        service = 'formdataservice';
+      case 'meetings':
+        // Get meetings for a specific date
+        apiUrl += `/GetMeetings/${date}`;
         break;
-      case 'scratchings':
-        service = 'scratchingsservice';
+      case 'meetingList':
+        // Get detailed meeting list for a specific date
+        apiUrl += `/GetMeetingList/${date}`;
         break;
-      case 'ratings':
-        service = 'ratingsservice';
+      case 'meetingListExt':
+        // Get extended meeting list for a specific date
+        apiUrl += `/GetMeetingListExt/${date}`;
+        break;
+      case 'exportMeetings':
+        // Export meetings for a date range (8 days prior to the provided date)
+        apiUrl += `/ExportMeetings/${date}/${includeBarrierTrials}`;
+        break;
+      case 'exportRaces':
+        // Export races for a date range (8 days prior to the provided date)
+        apiUrl += `/ExportRaces/${date}/${includeBarrierTrials}`;
+        break;
+      case 'exportFields':
+        // Export fields for a date range (8 days prior to the provided date)
+        apiUrl += `/ExportFields/${date}/${includeBarrierTrials}`;
         break;
       default:
-        service = 'formdataservice';
+        // Default to GetMeetings if no specific endpoint is requested
+        apiUrl += `/GetMeetings/${date || new Date().toLocaleDateString('en-AU')}`;
     }
     
-    // Build the base URL with the service
-    let apiUrl = `${API_BASE_URL}/${service}`;
+    // Add API key as query parameter
+    apiUrl += `?ApiKey=${API_KEY}`;
     
-    // Add specific endpoint based on the requested data
-    if (endpoint === 'races') {
-      apiUrl += '/ExportMeetings';
-      
-      // Add date parameter if provided
-      if (date) {
-        apiUrl += `/${date}`;
-      }
-    } else if (endpoint === 'scratchings') {
-      apiUrl += '/GetAllScratchings';
-    } else if (endpoint === 'ratings') {
-      apiUrl += '/GetRatings';
-      
-      // Add track and date parameters if provided
-      if (track && date) {
-        apiUrl += `/${track}/${date}`;
-      }
-    }
-    
-    // Add query parameters if they exist
+    // Add additional query parameters if they exist
     const queryParams = new URLSearchParams();
-    if (raceNumber) queryParams.append('race_number', raceNumber);
-    if (horseId) queryParams.append('horse_id', horseId);
+    if (raceNumber) queryParams.append('raceNumber', raceNumber);
+    if (horseId) queryParams.append('horseId', horseId);
     
-    // Add query parameters to URL if any exist
+    // Add additional query parameters to URL if any exist
     if (queryParams.toString()) {
-      apiUrl += `?${queryParams.toString()}`;
+      apiUrl += `&${queryParams.toString()}`;
     }
     
     // Add parameters if they exist
@@ -98,18 +94,13 @@ export async function GET(request) {
     console.log('Fetching from Punting Form API:', apiUrl);
     
     try {
-      // Create Basic auth credentials
-      const credentials = Buffer.from(`${API_USERNAME}:${API_PASSWORD}`).toString('base64');
-      
-      // Make the request to the Punting Form API with Basic auth
+      // Make the request to the Punting Form API
       const response = await fetch(apiUrl, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Basic ${credentials}`
+          'Accept': 'application/json'
         },
         // Add a timeout to prevent hanging
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(10000) // Increased timeout for potentially large responses
       });
       
       if (!response.ok) {
@@ -133,6 +124,37 @@ export async function GET(request) {
           errorData,
           errorText
         });
+        
+        // If the primary URL failed, try the fallback URL
+        if (apiUrl.startsWith(API_BASE_URL)) {
+          console.log('Trying fallback URL...');
+          const fallbackUrl = apiUrl.replace(API_BASE_URL, API_FALLBACK_URL);
+          
+          try {
+            const fallbackResponse = await fetch(fallbackUrl, {
+              headers: {
+                'Accept': 'application/json'
+              },
+              signal: AbortSignal.timeout(10000)
+            });
+            
+            if (fallbackResponse.ok) {
+              console.log('Fallback URL succeeded');
+              const data = await fallbackResponse.json();
+              
+              return Response.json({
+                success: true,
+                data,
+                source: 'Punting Form API (fallback)',
+                timestamp: new Date().toISOString()
+              });
+            } else {
+              console.error('Fallback URL also failed');
+            }
+          } catch (fallbackError) {
+            console.error('Error with fallback URL:', fallbackError);
+          }
+        }
         
         // Return a clear error message
         return Response.json(
@@ -212,50 +234,44 @@ export async function POST(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the test results
-    // The correct format is: baseUrl/service/endpoint/parameters
-    let service = '';
+    // The FormDataService API doesn't have POST endpoints according to the documentation
+    // But we'll implement this for future use or custom endpoints
     
-    // Determine which service to use based on the endpoint
-    switch(endpoint) {
-      case 'races':
-        service = 'formdataservice';
-        break;
-      case 'scratchings':
-        service = 'scratchingsservice';
-        break;
-      case 'ratings':
-        service = 'ratingsservice';
-        break;
-      default:
-        service = 'formdataservice';
-    }
+    // Build the API URL based on the FormDataService documentation
+    let apiUrl = API_BASE_URL;
     
-    // Build the base URL with the service
-    let apiUrl = `${API_BASE_URL}/${service}`;
-    
-    // Add specific endpoint based on the action
+    // Add the endpoint and action
     if (action) {
       apiUrl += `/${action}`;
+    } else {
+      // Default to GetMeetings if no specific action is provided
+      apiUrl += `/GetMeetings`;
+    }
+    
+    // Add date parameter if provided
+    if (parameters && parameters.date) {
+      apiUrl += `/${parameters.date}`;
+    } else {
+      // Use current date as default
+      apiUrl += `/${new Date().toLocaleDateString('en-AU')}`;
     }
     
     console.log('Posting to Punting Form API:', apiUrl);
     
     try {
-      // Create Basic auth credentials
-      const credentials = Buffer.from(`${API_USERNAME}:${API_PASSWORD}`).toString('base64');
+      // Add API key as query parameter
+      apiUrl += `?ApiKey=${API_KEY}`;
       
-      // Make the request to the Punting Form API with Basic auth
+      // Make the request to the Punting Form API
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Basic ${credentials}`
+          'Accept': 'application/json'
         },
         body: JSON.stringify(parameters || {}),
         // Add a timeout to prevent hanging
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(10000)
       });
       
       if (!response.ok) {
@@ -279,6 +295,40 @@ export async function POST(request) {
           errorData,
           errorText
         });
+        
+        // If the primary URL failed, try the fallback URL
+        if (apiUrl.startsWith(API_BASE_URL)) {
+          console.log('Trying fallback URL...');
+          const fallbackUrl = apiUrl.replace(API_BASE_URL, API_FALLBACK_URL);
+          
+          try {
+            const fallbackResponse = await fetch(fallbackUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(parameters || {}),
+              signal: AbortSignal.timeout(10000)
+            });
+            
+            if (fallbackResponse.ok) {
+              console.log('Fallback URL succeeded');
+              const data = await fallbackResponse.json();
+              
+              return Response.json({
+                success: true,
+                data,
+                source: 'Punting Form API (fallback)',
+                timestamp: new Date().toISOString()
+              });
+            } else {
+              console.error('Fallback URL also failed');
+            }
+          } catch (fallbackError) {
+            console.error('Error with fallback URL:', fallbackError);
+          }
+        }
         
         // Return a clear error message
         return Response.json(
