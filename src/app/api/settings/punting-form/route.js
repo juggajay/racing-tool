@@ -17,7 +17,7 @@ const ensureDirectoryExists = (filePath) => {
 // Default settings
 const defaultSettings = {
   apiKey: '',
-  endpoint: 'https://www.puntingform.com.au/api',
+  endpoint: 'https://api.puntingform.com.au/v2',
   isValid: false,
   lastValidated: null
 };
@@ -70,15 +70,14 @@ export async function POST(request) {
       const apiKey = settings.apiKey;
       const endpoint = settings.endpoint || 'https://www.puntingform.com.au/api';
       
-      // Use the GetMeetingsByDate endpoint for validation
-      const today = new Date().toISOString().split('T')[0];
-      const testUrl = `${endpoint}/GetMeetingsByDate?date=${today}&ApiKey=${apiKey}`;
+      // Use the form/comment endpoint for validation (V2 API)
+      const testUrl = `${endpoint}/form/comment`;
       
       const response = await fetch(testUrl, {
         method: 'GET',
         headers: {
-          'Accept': '*/*',
-          'User-Agent': 'Racing-Tool/1.0'
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
         },
         signal: AbortSignal.timeout(10000) // 10 seconds timeout
       });

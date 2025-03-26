@@ -492,10 +492,10 @@ export default function ApiSettingsPage() {
                 id="punting-form-endpoint"
                 value={puntingFormSettings.endpoint}
                 onChange={handlePuntingFormChange}
-                placeholder="https://www.puntingform.com.au/api"
+                placeholder="https://api.puntingform.com.au/v2"
                 className="bg-white/5 border border-white/20"
               />
-              <p className="text-xs opacity-70 mt-1">Default: https://www.puntingform.com.au/api</p>
+              <p className="text-xs opacity-70 mt-1">Default: https://api.puntingform.com.au/v2</p>
             </div>
 
             <Button
