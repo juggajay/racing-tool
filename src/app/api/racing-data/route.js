@@ -1,8 +1,8 @@
 // Racing Data API
 // This API provides access to horse racing data using the mock Punting Form API
 
-// Import mock data from the punting-form-mock API
-import { GET as getMockData } from '../punting-form-mock/route';
+// We'll use fetch to call the mock API instead of importing it directly
+// This avoids potential issues with circular imports or module resolution
 
 export async function GET(request) {
   try {
@@ -15,17 +15,21 @@ export async function GET(request) {
     const raceNumber = searchParams.get('race_number');
     const horseId = searchParams.get('horse_id');
     
-    // Create a new request to the mock API
-    const mockRequest = new Request(
-      `${new URL(request.url).origin}/api/punting-form-mock?endpoint=${endpoint}` +
-      (date ? `&date=${date}` : '') +
-      (track ? `&track=${track}` : '') +
-      (raceNumber ? `&race_number=${raceNumber}` : '') +
-      (horseId ? `&horse_id=${horseId}` : '')
-    );
+    // Build the URL for the mock API
+    const mockApiUrl = new URL('/api/punting-form-mock', request.url);
+    mockApiUrl.searchParams.set('endpoint', endpoint);
+    if (date) mockApiUrl.searchParams.set('date', date);
+    if (track) mockApiUrl.searchParams.set('track', track);
+    if (raceNumber) mockApiUrl.searchParams.set('race_number', raceNumber);
+    if (horseId) mockApiUrl.searchParams.set('horse_id', horseId);
     
-    // Get data from the mock API
-    const mockResponse = await getMockData(mockRequest);
+    // Fetch data from the mock API
+    const mockResponse = await fetch(mockApiUrl.toString());
+    
+    if (!mockResponse.ok) {
+      throw new Error(`Mock API error: ${mockResponse.status} ${mockResponse.statusText}`);
+    }
+    
     const mockData = await mockResponse.json();
     
     // Process the data based on the endpoint
@@ -76,16 +80,20 @@ export async function POST(request) {
         );
       }
       
-      // Create a new request to the mock API
-      const mockRequest = new Request(
-        `${new URL(request.url).origin}/api/punting-form-mock?endpoint=races` +
-        (date ? `&date=${date}` : '') +
-        `&track=${track}` +
-        `&race_number=${raceNumber}`
-      );
+      // Build the URL for the mock API
+      const mockApiUrl = new URL('/api/punting-form-mock', request.url);
+      mockApiUrl.searchParams.set('endpoint', 'races');
+      if (date) mockApiUrl.searchParams.set('date', date);
+      mockApiUrl.searchParams.set('track', track);
+      mockApiUrl.searchParams.set('race_number', raceNumber);
       
-      // Get data from the mock API
-      const mockResponse = await getMockData(mockRequest);
+      // Fetch data from the mock API
+      const mockResponse = await fetch(mockApiUrl.toString());
+      
+      if (!mockResponse.ok) {
+        throw new Error(`Mock API error: ${mockResponse.status} ${mockResponse.statusText}`);
+      }
+      
       const mockData = await mockResponse.json();
       
       return Response.json({
@@ -105,13 +113,18 @@ export async function POST(request) {
         );
       }
       
-      // Create a new request to the mock API
-      const mockRequest = new Request(
-        `${new URL(request.url).origin}/api/punting-form-mock?endpoint=horses&horse_id=${horseId}`
-      );
+      // Build the URL for the mock API
+      const mockApiUrl = new URL('/api/punting-form-mock', request.url);
+      mockApiUrl.searchParams.set('endpoint', 'horses');
+      mockApiUrl.searchParams.set('horse_id', horseId);
       
-      // Get data from the mock API
-      const mockResponse = await getMockData(mockRequest);
+      // Fetch data from the mock API
+      const mockResponse = await fetch(mockApiUrl.toString());
+      
+      if (!mockResponse.ok) {
+        throw new Error(`Mock API error: ${mockResponse.status} ${mockResponse.statusText}`);
+      }
+      
       const mockData = await mockResponse.json();
       
       return Response.json({
@@ -131,13 +144,18 @@ export async function POST(request) {
         );
       }
       
-      // Create a new request to the mock API
-      const mockRequest = new Request(
-        `${new URL(request.url).origin}/api/punting-form-mock?endpoint=races&track=${track}`
-      );
+      // Build the URL for the mock API
+      const mockApiUrl = new URL('/api/punting-form-mock', request.url);
+      mockApiUrl.searchParams.set('endpoint', 'races');
+      mockApiUrl.searchParams.set('track', track);
       
-      // Get data from the mock API
-      const mockResponse = await getMockData(mockRequest);
+      // Fetch data from the mock API
+      const mockResponse = await fetch(mockApiUrl.toString());
+      
+      if (!mockResponse.ok) {
+        throw new Error(`Mock API error: ${mockResponse.status} ${mockResponse.statusText}`);
+      }
+      
       const mockData = await mockResponse.json();
       
       return Response.json({
@@ -157,13 +175,18 @@ export async function POST(request) {
         );
       }
       
-      // Create a new request to the mock API
-      const mockRequest = new Request(
-        `${new URL(request.url).origin}/api/punting-form-mock?endpoint=races&date=${date}`
-      );
+      // Build the URL for the mock API
+      const mockApiUrl = new URL('/api/punting-form-mock', request.url);
+      mockApiUrl.searchParams.set('endpoint', 'races');
+      mockApiUrl.searchParams.set('date', date);
       
-      // Get data from the mock API
-      const mockResponse = await getMockData(mockRequest);
+      // Fetch data from the mock API
+      const mockResponse = await fetch(mockApiUrl.toString());
+      
+      if (!mockResponse.ok) {
+        throw new Error(`Mock API error: ${mockResponse.status} ${mockResponse.statusText}`);
+      }
+      
       const mockData = await mockResponse.json();
       
       return Response.json({
