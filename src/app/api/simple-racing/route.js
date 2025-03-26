@@ -1,0 +1,58 @@
+// Simple Racing API
+// This API provides basic racing data with no external dependencies
+
+export async function GET(request) {
+  // Sample race data
+  const races = [
+    {
+      id: "race_1",
+      race_number: 1,
+      track_name: "Flemington",
+      race_date: "2025-03-28",
+      race_time: "12:30 PM",
+      distance: 1200,
+      race_class: "Group 3",
+      prize_money: "$75,000",
+      entries: [
+        { id: "horse_1", name: "Fast Thunder", barrier: 2, weight: "58.5kg", jockey: "J. Smith", trainer: "T. Williams", odds: 4.5 },
+        { id: "horse_2", name: "Ocean Breeze", barrier: 7, weight: "57.0kg", jockey: "M. Johnson", trainer: "S. Davis", odds: 6.0 },
+        { id: "horse_3", name: "Lucky Star", barrier: 8, weight: "56.5kg", jockey: "R. Thompson", trainer: "J. Wilson", odds: 5.5 }
+      ]
+    },
+    {
+      id: "race_2",
+      race_number: 2,
+      track_name: "Flemington",
+      race_date: "2025-03-28",
+      race_time: "1:05 PM",
+      distance: 1400,
+      race_class: "Maiden",
+      prize_money: "$50,000",
+      entries: [
+        { id: "horse_9", name: "Silver Lining", barrier: 3, weight: "58.0kg", jockey: "P. Johnson", trainer: "M. Williams", odds: 3.5 },
+        { id: "horse_10", name: "Midnight Run", barrier: 5, weight: "57.5kg", jockey: "T. Smith", trainer: "J. Davis", odds: 4.0 },
+        { id: "horse_11", name: "Coastal Breeze", barrier: 1, weight: "57.0kg", jockey: "R. Brown", trainer: "S. Wilson", odds: 6.0 }
+      ]
+    }
+  ];
+
+  try {
+    // Return all races
+    return Response.json({
+      success: true,
+      data: races,
+      source: "Simple Racing API",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('API error:', error);
+    
+    return Response.json(
+      {
+        error: 'Internal server error',
+        message: error.message
+      },
+      { status: 500 }
+    );
+  }
+}
