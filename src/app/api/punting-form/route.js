@@ -3,8 +3,10 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'https://api.puntingform.com.au/v2'; // Updated based on new documentation
+const API_BASE_URL = 'http://old.puntingform.com.au/api'; // Updated based on test results
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
+const API_USERNAME = 'apiuser'; // Default username for Basic auth
+const API_PASSWORD = API_KEY; // Using API key as password
 
 // Disable mock API as per user request
 const USE_MOCK_API = false;
@@ -33,30 +35,55 @@ export async function GET(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the new documentation
-    // The correct format is: baseUrl/form/comment?apiKey=key&startDate=date
-    let apiUrl = `${API_BASE_URL}/form/comment`;
+    // Build the API URL based on the test results
+    // The correct format is: baseUrl/service/endpoint/parameters
+    let service = '';
     
-    const queryParams = new URLSearchParams();
-    
-    // Add required parameters
-    queryParams.append('apiKey', API_KEY);
-    
-    // Add startDate parameter (required)
-    // Use current date if not provided
-    const startDate = date || new Date().toISOString().split('T')[0];
-    queryParams.append('startDate', startDate);
-    
-    // Add optional parameters if provided
-    if (endpoint === 'bestbets') {
-      queryParams.append('commentType', 0); // BestBets = 0
-    } else if (endpoint === 'racenet') {
-      queryParams.append('commentType', 1); // RaceNet = 1
+    // Determine which service to use based on the endpoint
+    switch(endpoint) {
+      case 'races':
+        service = 'formdataservice';
+        break;
+      case 'scratchings':
+        service = 'scratchingsservice';
+        break;
+      case 'ratings':
+        service = 'ratingsservice';
+        break;
+      default:
+        service = 'formdataservice';
     }
     
-    // Add jurisdiction if provided
-    if (track) {
-      queryParams.append('jurisdiction', track);
+    // Build the base URL with the service
+    let apiUrl = `${API_BASE_URL}/${service}`;
+    
+    // Add specific endpoint based on the requested data
+    if (endpoint === 'races') {
+      apiUrl += '/ExportMeetings';
+      
+      // Add date parameter if provided
+      if (date) {
+        apiUrl += `/${date}`;
+      }
+    } else if (endpoint === 'scratchings') {
+      apiUrl += '/GetAllScratchings';
+    } else if (endpoint === 'ratings') {
+      apiUrl += '/GetRatings';
+      
+      // Add track and date parameters if provided
+      if (track && date) {
+        apiUrl += `/${track}/${date}`;
+      }
+    }
+    
+    // Add query parameters if they exist
+    const queryParams = new URLSearchParams();
+    if (raceNumber) queryParams.append('race_number', raceNumber);
+    if (horseId) queryParams.append('horse_id', horseId);
+    
+    // Add query parameters to URL if any exist
+    if (queryParams.toString()) {
+      apiUrl += `?${queryParams.toString()}`;
     }
     
     // Add parameters if they exist
@@ -71,11 +98,15 @@ export async function GET(request) {
     console.log('Fetching from Punting Form API:', apiUrl);
     
     try {
-      // Make the request to the Punting Form API
+      // Create Basic auth credentials
+      const credentials = Buffer.from(`${API_USERNAME}:${API_PASSWORD}`).toString('base64');
+      
+      // Make the request to the Punting Form API with Basic auth
       const response = await fetch(apiUrl, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Authorization': `Basic ${credentials}`
         },
         // Add a timeout to prevent hanging
         signal: AbortSignal.timeout(5000)
@@ -181,45 +212,46 @@ export async function POST(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the new documentation
-    // The correct format is: baseUrl/form/comment?apiKey=key&startDate=date
-    let apiUrl = `${API_BASE_URL}/form/comment`;
+    // Build the API URL based on the test results
+    // The correct format is: baseUrl/service/endpoint/parameters
+    let service = '';
     
-    // Prepare parameters
-    const requestParams = parameters || {};
-    
-    // Add required parameters
-    requestParams.apiKey = API_KEY;
-    
-    // Add startDate parameter (required)
-    // Use current date if not provided
-    if (!requestParams.startDate) {
-      requestParams.startDate = new Date().toISOString().split('T')[0];
+    // Determine which service to use based on the endpoint
+    switch(endpoint) {
+      case 'races':
+        service = 'formdataservice';
+        break;
+      case 'scratchings':
+        service = 'scratchingsservice';
+        break;
+      case 'ratings':
+        service = 'ratingsservice';
+        break;
+      default:
+        service = 'formdataservice';
     }
     
-    // Add optional parameters if provided
-    if (endpoint === 'bestbets') {
-      requestParams.commentType = 0; // BestBets = 0
-    } else if (endpoint === 'racenet') {
-      requestParams.commentType = 1; // RaceNet = 1
-    }
+    // Build the base URL with the service
+    let apiUrl = `${API_BASE_URL}/${service}`;
     
-    // Add query parameters to URL
-    const queryParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(requestParams)) {
-      queryParams.append(key, value);
+    // Add specific endpoint based on the action
+    if (action) {
+      apiUrl += `/${action}`;
     }
-    apiUrl += `?${queryParams.toString()}`;
     
     console.log('Posting to Punting Form API:', apiUrl);
     
     try {
-      // Make the request to the Punting Form API
+      // Create Basic auth credentials
+      const credentials = Buffer.from(`${API_USERNAME}:${API_PASSWORD}`).toString('base64');
+      
+      // Make the request to the Punting Form API with Basic auth
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'Authorization': `Basic ${credentials}`
         },
         body: JSON.stringify(parameters || {}),
         // Add a timeout to prevent hanging
