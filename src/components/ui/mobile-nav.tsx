@@ -56,6 +56,9 @@ export function MobileNav() {
               <Link href="/community" className="hover:text-indigo-400 transition-colors">
                 Community
               </Link>
+              <Link href="/api-test" className="hover:text-indigo-400 transition-colors">
+                API Test
+              </Link>
             </nav>
             <div className="flex items-center space-x-4">
               <div className="md:hidden">
@@ -146,6 +149,13 @@ export function MobileNav() {
                     onClick={toggleMenu}
                   >
                     Community
+                  </Link>
+                  <Link
+                    href="/api-test"
+                    className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
+                    onClick={toggleMenu}
+                  >
+                    API Test
                   </Link>
                   <div className="pt-2 border-t border-indigo-900">
                     <AuthStatus />
