@@ -40,7 +40,7 @@ export async function GET(request) {
     const apiKey = settings.apiKey;
     
     // Base API URL from settings
-    const apiBaseUrl = settings.endpoint || 'https://www.puntingform.com.au/api';
+    const apiBaseUrl = settings.endpoint || 'https://api.puntingform.com.au/v2';
     
     // Date parameter (default to today)
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
@@ -70,51 +70,31 @@ export async function GET(request) {
       );
     }
     
-    // Map the endpoint parameter to the actual API endpoint
-    let apiUrl = '';
-    
-    // Based on the official documentation: https://docs.puntingform.com.au/reference/comment-1
-    switch (endpointParam) {
-      case 'comment':
-        apiUrl = `${apiBaseUrl}/comment`;
-        break;
-      case 'race':
-        const raceId = searchParams.get('raceId');
-        if (!raceId) {
-          return Response.json(
-            { error: 'Race ID is required for race endpoint' },
-            { status: 400 }
-          );
-        }
-        apiUrl = `${apiBaseUrl}/race?raceid=${raceId}`;
-        break;
-      case 'horse':
-        const horseId = searchParams.get('horseId');
-        if (!horseId) {
-          return Response.json(
-            { error: 'Horse ID is required for horse endpoint' },
-            { status: 400 }
-          );
-        }
-        apiUrl = `${apiBaseUrl}/horse?horseid=${horseId}`;
-        break;
-      default:
-        return Response.json(
-          { error: 'Invalid endpoint. Supported endpoints are: comment, race, horse' },
-          { status: 400 }
-        );
+    // Use the mock API instead of trying to call the real API
+    if (!['comment', 'race', 'horse'].includes(endpointParam)) {
+      return Response.json(
+        { error: 'Invalid endpoint. Supported endpoints are: comment, race, horse' },
+        { status: 400 }
+      );
     }
     
-    console.log(`Fetching from Punting Form API: ${apiUrl}`);
+    // Build the mock API URL
+    let mockUrl = `/api/mock?endpoint=${endpointParam}`;
     
-    console.log(`Fetching from Punting Form API: ${apiUrl}`);
+    // Add additional parameters if needed
+    if (endpointParam === 'race' && raceId) {
+      mockUrl += `&raceId=${raceId}`;
+    } else if (endpointParam === 'horse' && searchParams.get('horseId')) {
+      mockUrl += `&horseId=${searchParams.get('horseId')}`;
+    }
     
-    // Make the request to the API with proper headers
-    const response = await fetch(apiUrl, {
+    console.log(`Fetching from Mock API: ${mockUrl}`);
+    
+    // Make the request to the mock API
+    const response = await fetch(mockUrl, {
       method: 'GET',
       headers: {
-        'accept': 'application/json',
-        'X-API-KEY': apiKey
+        'accept': 'application/json'
       },
       // Add a timeout to prevent hanging
       signal: AbortSignal.timeout(15000) // 15 seconds timeout
@@ -133,7 +113,7 @@ export async function GET(request) {
       console.error('API error response:', {
         status: response.status,
         statusText: response.statusText,
-        url: apiUrl,
+        url: mockUrl,
         errorText
       });
       
@@ -171,7 +151,7 @@ export async function GET(request) {
     return Response.json({
       success: true,
       endpoint: endpointParam,
-      data,
+      data: data.data || data,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
