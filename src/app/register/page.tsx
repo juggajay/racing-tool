@@ -11,7 +11,7 @@ function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
@@ -42,7 +42,7 @@ function RegisterForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, fullName }),
+        body: JSON.stringify({ email, password, username }),
       });
       
       const data = await response.json();
@@ -115,15 +115,15 @@ function RegisterForm() {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="fullName" className="block text-sm font-medium mb-1">
-            Full Name
+          <label htmlFor="username" className="block text-sm font-medium mb-1">
+            Username
           </label>
           <Input
-            id="fullName"
+            id="username"
             type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your full name"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Choose a username"
             required
             className="bg-white/5 border border-white/20"
           />

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 
 // Sample categories
@@ -23,6 +24,10 @@ export default function NewDiscussionPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  const router = useRouter();
   
   const handleAddTag = () => {
     if (!tagInput.trim() || tags.includes(tagInput.trim())) return;
@@ -34,20 +39,38 @@ export default function NewDiscussionPage() {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     
-    // In a real application, this would send the data to the server
-    console.log({
-      title,
-      content,
-      category: selectedCategory,
-      tags
-    });
-    
-    // Redirect to the community page (simulated)
-    alert("Discussion created successfully!");
-    window.location.href = "/community";
+    try {
+      const response = await fetch('/api/community/discussions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          category: selectedCategory,
+          tags
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create discussion');
+      }
+      
+      // Redirect to the community page
+      router.push('/community');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while creating the discussion');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,6 +85,12 @@ export default function NewDiscussionPage() {
 
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <h1 className="text-2xl font-bold mb-6">Create New Discussion</h1>
+        
+        {error && (
+          <div className="bg-red-900/50 border border-red-500 text-white p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -155,11 +184,12 @@ export default function NewDiscussionPage() {
               <Button type="button" variant="outline" asChild>
                 <Link href="/community">Cancel</Link>
               </Button>
-              <Button 
+              <Button
                 type="submit"
-                disabled={!title.trim() || !content.trim() || !selectedCategory}
+                disabled={!title.trim() || !content.trim() || !selectedCategory || loading}
+                className={loading ? "bg-blue-600/50" : "bg-blue-600 hover:bg-blue-700"}
               >
-                Create Discussion
+                {loading ? "Creating..." : "Create Discussion"}
               </Button>
             </div>
           </div>

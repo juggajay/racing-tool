@@ -16,12 +16,12 @@ export const runtime = 'edge';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, fullName } = await request.json();
+    const { email, password, username } = await request.json();
     
     // Validate input
-    if (!email || !password || !fullName) {
+    if (!email || !password || !username) {
       return NextResponse.json(
-        { message: 'Email, password, and full name are required' },
+        { message: 'Email, password, and username are required' },
         { status: 400 }
       );
     }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       id: `${USERS.length + 1}`,
       email,
       password, // In a real app, this would be hashed
-      name: fullName,
+      name: username,
       verified: false
     };
     
