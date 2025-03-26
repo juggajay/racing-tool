@@ -13,7 +13,10 @@ export async function GET(request) {
       'https://api.puntingform.com.au/v1/races',
       'https://api.puntingform.com.au/races',
       'https://www.puntingform.com.au/api/v1/races',
-      'https://www.puntingform.com.au/api/races'
+      'https://www.puntingform.com.au/api/races',
+      'http://old.puntingform.com.au/api/formdataservice/ExportMeetings',
+      'http://old.puntingform.com.au/api/scratchingsservice/GetAllScratchings',
+      'http://old.puntingform.com.au/api/ratingsservice/GetRatings'
     ];
     
     // Try different authentication methods
