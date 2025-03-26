@@ -66,27 +66,26 @@ export async function POST(request) {
     let validationError = null;
 
     try {
-      // Try to validate the API key with a simple request
+      // Try to validate the API key with a simple request through our proxy
       const apiKey = settings.apiKey;
-      const endpoint = settings.endpoint || 'https://api.puntingform.com.au/v2';
       
-      // Use the comment endpoint for validation (V2 API)
-      // Based on the official docs: https://docs.puntingform.com.au/reference/comment-1
-      const testUrl = `${endpoint}/comment`;
+      // Use our proxy API instead of calling the Punting Form API directly
+      const testUrl = `/api/proxy?endpoint=comment&apiKey=${apiKey}`;
       
       const response = await fetch(testUrl, {
         method: 'GET',
         headers: {
-          'accept': 'application/json',
-          'X-API-KEY': apiKey
+          'accept': 'application/json'
         },
         signal: AbortSignal.timeout(10000) // 10 seconds timeout
       });
       
-      if (response.ok) {
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
         isValid = true;
       } else {
-        validationError = `API returned status ${response.status}: ${response.statusText}`;
+        validationError = data.error || `API returned status ${response.status}: ${response.statusText}`;
       }
     } catch (error) {
       validationError = `Validation error: ${error.message}`;
