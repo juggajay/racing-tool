@@ -21,7 +21,7 @@ const getSettings = () => {
   // Return default settings if file doesn't exist or there's an error
   return {
     apiKey: '5b0df8bf-da9a-4d1e-995d-9b7a002aa836', // Default API key
-    endpoint: 'https://www.puntingform.com.au/api',
+    endpoint: 'https://api.puntingform.com.au/v2',
     isValid: false
   };
 };
