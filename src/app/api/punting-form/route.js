@@ -1,14 +1,13 @@
 // Punting Form API Integration
 // This file integrates with the Punting Form API (https://www.puntingform.com.au/)
-// If the real API is not available, it falls back to a mock API
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
 const API_BASE_URL = 'https://api.puntingform.com.au/v1'; // Updated to include API version
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
 
-// Flag to use mock API (will be set to true if real API fails)
-let USE_MOCK_API = false;
+// Disable mock API as per user request
+const USE_MOCK_API = false;
 
 export async function GET(request) {
   try {
@@ -32,19 +31,7 @@ export async function GET(request) {
     const raceNumber = searchParams.get('race_number');
     const horseId = searchParams.get('horse_id');
     
-    // If we're using the mock API, forward the request to the mock API
-    if (USE_MOCK_API) {
-      console.log('Using mock Punting Form API');
-      
-      // Forward the request to the mock API
-      const mockUrl = new URL(request.url);
-      mockUrl.pathname = '/api/punting-form-mock';
-      
-      const mockResponse = await fetch(mockUrl);
-      const mockData = await mockResponse.json();
-      
-      return Response.json(mockData);
-    }
+    // Mock API is disabled as per user request
     
     // Build the API URL based on the requested endpoint and parameters
     let apiUrl = `${API_BASE_URL}/${endpoint}`;
@@ -97,18 +84,18 @@ export async function GET(request) {
           errorText
         });
         
-        // Set the flag to use mock API for future requests
-        USE_MOCK_API = true;
-        console.log('Switching to mock API for future requests');
-        
-        // Forward the request to the mock API
-        const mockUrl = new URL(request.url);
-        mockUrl.pathname = '/api/punting-form-mock';
-        
-        const mockResponse = await fetch(mockUrl);
-        const mockData = await mockResponse.json();
-        
-        return Response.json(mockData);
+        // Return a clear error message
+        return Response.json(
+          {
+            error: 'Error fetching data from Punting Form API',
+            status: response.status,
+            statusText: response.statusText,
+            url: apiUrl,
+            details: errorData || errorText,
+            message: 'The Punting Form API is currently unavailable. Please check your API key and try again later.'
+          },
+          { status: response.status }
+        );
       }
       
       const data = await response.json();
@@ -120,47 +107,31 @@ export async function GET(request) {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error fetching from real API, falling back to mock:', error);
+      console.error('Error fetching from Punting Form API:', error);
       
-      // Set the flag to use mock API for future requests
-      USE_MOCK_API = true;
-      console.log('Switching to mock API for future requests');
-      
-      // Forward the request to the mock API
-      const mockUrl = new URL(request.url);
-      mockUrl.pathname = '/api/punting-form-mock';
-      
-      const mockResponse = await fetch(mockUrl);
-      const mockData = await mockResponse.json();
-      
-      return Response.json(mockData);
-    }
-  } catch (error) {
-    console.error('Punting Form API error:', error);
-    
-    // Set the flag to use mock API for future requests
-    USE_MOCK_API = true;
-    console.log('Switching to mock API due to error in GET function');
-    
-    try {
-      // Forward the request to the mock API
-      const mockUrl = new URL('/api/punting-form-mock', 'http://localhost');
-      
-      const mockResponse = await fetch(mockUrl);
-      const mockData = await mockResponse.json();
-      
-      return Response.json(mockData);
-    } catch (mockError) {
-      // If even the mock API fails, return a friendly error
+      // Return a clear error message
       return Response.json(
         {
-          error: 'Service temporarily unavailable',
-          message: 'We are experiencing technical difficulties. Please try again later.',
-          isMock: true
+          error: 'Error connecting to Punting Form API',
+          message: 'Failed to connect to the Punting Form API. Please check your internet connection and try again later.',
+          details: error.message,
+          url: apiUrl
         },
         { status: 503 }
       );
     }
+  } catch (error) {
+    console.error('Punting Form API error:', error);
+    
+    // Return a clear error message
+    return Response.json(
+      {
+        error: 'Service temporarily unavailable',
+        message: 'We are experiencing technical difficulties with the Punting Form API. Please try again later.',
+        details: error.message
+      },
+      { status: 503 }
+    );
   }
 }
 
@@ -189,19 +160,7 @@ export async function POST(request) {
       );
     }
     
-    // If we're using the mock API, return a mock response
-    if (USE_MOCK_API) {
-      console.log('Using mock Punting Form API for POST request');
-      
-      // For POST requests, we'll just return a success response
-      // In a real implementation, you might want to forward this to a mock POST endpoint
-      return Response.json({
-        success: true,
-        data: { message: 'Operation completed successfully (mock)' },
-        source: 'Mock Punting Form API',
-        timestamp: new Date().toISOString()
-      });
-    }
+    // Mock API is disabled as per user request
     
     // Build the API URL
     let apiUrl = `${API_BASE_URL}/${endpoint}`;
@@ -253,17 +212,18 @@ export async function POST(request) {
           errorText
         });
         
-        // Set the flag to use mock API for future requests
-        USE_MOCK_API = true;
-        console.log('Switching to mock API for future requests');
-        
-        // Return a mock success response
-        return Response.json({
-          success: true,
-          data: { message: 'Operation completed successfully (mock)' },
-          source: 'Mock Punting Form API',
-          timestamp: new Date().toISOString()
-        });
+        // Return a clear error message
+        return Response.json(
+          {
+            error: 'Error posting data to Punting Form API',
+            status: response.status,
+            statusText: response.statusText,
+            url: apiUrl,
+            details: errorData || errorText,
+            message: 'The Punting Form API is currently unavailable. Please check your API key and try again later.'
+          },
+          { status: response.status }
+        );
       }
       
       const data = await response.json();
@@ -275,33 +235,30 @@ export async function POST(request) {
         timestamp: new Date().toISOString()
       });
     } catch (error) {
-      console.error('Error posting to real API, using mock response:', error);
+      console.error('Error posting to Punting Form API:', error);
       
-      // Set the flag to use mock API for future requests
-      USE_MOCK_API = true;
-      console.log('Switching to mock API for future requests');
-      
-      // Return a mock success response
-      return Response.json({
-        success: true,
-        data: { message: 'Operation completed successfully (mock)' },
-        source: 'Mock Punting Form API',
-        timestamp: new Date().toISOString()
-      });
+      // Return a clear error message
+      return Response.json(
+        {
+          error: 'Error connecting to Punting Form API',
+          message: 'Failed to connect to the Punting Form API. Please check your internet connection and try again later.',
+          details: error.message,
+          url: apiUrl
+        },
+        { status: 503 }
+      );
     }
   } catch (error) {
     console.error('Punting Form API error:', error);
     
-    // Set the flag to use mock API for future requests
-    USE_MOCK_API = true;
-    console.log('Switching to mock API due to error in POST function');
-    
-    // Return a mock success response
-    return Response.json({
-      success: true,
-      data: { message: 'Operation completed successfully (mock)' },
-      source: 'Mock Punting Form API (error fallback)',
-      timestamp: new Date().toISOString()
-    });
+    // Return a clear error message
+    return Response.json(
+      {
+        error: 'Service temporarily unavailable',
+        message: 'We are experiencing technical difficulties with the Punting Form API. Please try again later.',
+        details: error.message
+      },
+      { status: 503 }
+    );
   }
 }
