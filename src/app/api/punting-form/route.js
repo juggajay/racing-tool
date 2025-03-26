@@ -70,37 +70,62 @@ export async function GET(request) {
       );
     }
     
-    // Determine which service to use based on the endpoint
-    let service = '';
+    // Map the endpoint parameter to the actual API endpoint
+    let apiUrl = '';
     
-    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpointParam)) {
-      service = 'formdataservice';
-    } else if (endpointParam === 'GetAllScratchings') {
-      service = 'scratchingsservice';
-    } else if (endpointParam === 'GetRatings') {
-      service = 'ratingsservice';
-    } else {
-      return Response.json(
-        { error: 'Invalid endpoint' },
-        { status: 400 }
-      );
+    // Based on the new documentation: https://documenter.getpostman.com/view/10712595/TzJvdwbM
+    switch (endpointParam) {
+      case 'GetMeetingsByDate':
+        apiUrl = `${apiBaseUrl}/GetMeetingsByDate?date=${date}&apikey=${apiKey}`;
+        break;
+      case 'GetRacesByMeetingId':
+        const meetingId = searchParams.get('meetingId');
+        if (!meetingId) {
+          return Response.json(
+            { error: 'Meeting ID is required for GetRacesByMeetingId endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/GetRacesByMeetingId?meetingid=${meetingId}&apikey=${apiKey}`;
+        break;
+      case 'GetRaceFields':
+        const raceId = searchParams.get('raceId');
+        if (!raceId) {
+          return Response.json(
+            { error: 'Race ID is required for GetRaceFields endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/GetRaceFields?raceid=${raceId}&apikey=${apiKey}`;
+        break;
+      case 'GetHorseProfile':
+        const horseId = searchParams.get('horseId');
+        if (!horseId) {
+          return Response.json(
+            { error: 'Horse ID is required for GetHorseProfile endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/GetHorseProfile?horseid=${horseId}&apikey=${apiKey}`;
+        break;
+      case 'GetHorseForm':
+        const horseFormId = searchParams.get('horseId');
+        if (!horseFormId) {
+          return Response.json(
+            { error: 'Horse ID is required for GetHorseForm endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/GetHorseForm?horseid=${horseFormId}&apikey=${apiKey}`;
+        break;
+      default:
+        return Response.json(
+          { error: 'Invalid endpoint. Supported endpoints are: GetMeetingsByDate, GetRacesByMeetingId, GetRaceFields, GetHorseProfile, GetHorseForm' },
+          { status: 400 }
+        );
     }
     
-    // Build the API URL according to the documentation
-    let apiUrl = `${apiBaseUrl}/${service}/${endpointParam}/${date}`;
-    
-    // Add includeBarrierTrials parameter for endpoints that support it
-    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpointParam)) {
-      apiUrl += `/${includeBarrierTrials ? 'true' : 'false'}`;
-    }
-    
-    // Add raceId parameter for GetRatings endpoint
-    if (endpointParam === 'GetRatings' && raceId) {
-      apiUrl += `/${raceId}`;
-    }
-    
-    // Add API key as query parameter
-    apiUrl += `?ApiKey=${apiKey}`;
+    console.log(`Fetching from Punting Form API: ${apiUrl}`);
     
     console.log(`Fetching from Punting Form API: ${apiUrl}`);
     

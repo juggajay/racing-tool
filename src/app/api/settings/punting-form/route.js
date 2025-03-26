@@ -70,9 +70,9 @@ export async function POST(request) {
       const apiKey = settings.apiKey;
       const endpoint = settings.endpoint || 'https://www.puntingform.com.au/api';
       
-      // Use the ExportMeetings endpoint for validation
+      // Use the GetMeetingsByDate endpoint for validation
       const today = new Date().toISOString().split('T')[0];
-      const testUrl = `${endpoint}/formdataservice/ExportMeetings/${today}/false?ApiKey=${apiKey}`;
+      const testUrl = `${endpoint}/GetMeetingsByDate?date=${today}&apikey=${apiKey}`;
       
       const response = await fetch(testUrl, {
         method: 'GET',
