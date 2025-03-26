@@ -72,7 +72,7 @@ export async function POST(request) {
       
       // Use the GetMeetingsByDate endpoint for validation
       const today = new Date().toISOString().split('T')[0];
-      const testUrl = `${endpoint}/GetMeetingsByDate?date=${today}&apikey=${apiKey}`;
+      const testUrl = `${endpoint}/GetMeetingsByDate?date=${today}&ApiKey=${apiKey}`;
       
       const response = await fetch(testUrl, {
         method: 'GET',

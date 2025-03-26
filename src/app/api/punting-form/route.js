@@ -76,7 +76,7 @@ export async function GET(request) {
     // Based on the new documentation: https://documenter.getpostman.com/view/10712595/TzJvdwbM
     switch (endpointParam) {
       case 'GetMeetingsByDate':
-        apiUrl = `${apiBaseUrl}/GetMeetingsByDate?date=${date}&apikey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/GetMeetingsByDate?date=${date}&ApiKey=${apiKey}`;
         break;
       case 'GetRacesByMeetingId':
         const meetingId = searchParams.get('meetingId');
@@ -86,7 +86,7 @@ export async function GET(request) {
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetRacesByMeetingId?meetingid=${meetingId}&apikey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/GetRacesByMeetingId?meetingid=${meetingId}&ApiKey=${apiKey}`;
         break;
       case 'GetRaceFields':
         const raceId = searchParams.get('raceId');
@@ -96,7 +96,7 @@ export async function GET(request) {
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetRaceFields?raceid=${raceId}&apikey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/GetRaceFields?raceid=${raceId}&ApiKey=${apiKey}`;
         break;
       case 'GetHorseProfile':
         const horseId = searchParams.get('horseId');
@@ -106,7 +106,7 @@ export async function GET(request) {
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetHorseProfile?horseid=${horseId}&apikey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/GetHorseProfile?horseid=${horseId}&ApiKey=${apiKey}`;
         break;
       case 'GetHorseForm':
         const horseFormId = searchParams.get('horseId');
@@ -116,7 +116,7 @@ export async function GET(request) {
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetHorseForm?horseid=${horseFormId}&apikey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/GetHorseForm?horseid=${horseFormId}&ApiKey=${apiKey}`;
         break;
       default:
         return Response.json(
