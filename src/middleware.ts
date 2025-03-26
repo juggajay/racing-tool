@@ -15,6 +15,10 @@ const publicPaths = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
+  // AUTHENTICATION DISABLED: Website is now open for all users
+  // The code below is kept for reference in case authentication needs to be re-enabled
+  
+  /*
   // Check if the path is public
   const isPublicPath = publicPaths.some(path =>
     pathname === path || pathname.startsWith(path + '/')
@@ -34,7 +38,9 @@ export function middleware(request: NextRequest) {
   if (authToken && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
+  */
   
+  // Allow all requests to proceed
   return NextResponse.next();
 }
 
