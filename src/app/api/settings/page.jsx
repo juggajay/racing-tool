@@ -26,6 +26,14 @@ export default function ApiSettingsPage() {
     }
   });
   
+  // State for Punting Form API settings
+  const [puntingFormSettings, setPuntingFormSettings] = useState({
+    apiKey: '',
+    endpoint: 'https://www.puntingform.com.au/api',
+    isValid: false,
+    lastValidated: null
+  });
+  
   // State for Weather API settings
   const [weatherSettings, setWeatherSettings] = useState({
     provider: 'openweather',
@@ -104,6 +112,13 @@ export default function ApiSettingsPage() {
           const data = await modelResponse.json();
           setModelSettings(data);
         }
+        
+        // Load Punting Form API settings
+        const puntingFormResponse = await fetch('/api/settings/punting-form');
+        if (puntingFormResponse.ok) {
+          const data = await puntingFormResponse.json();
+          setPuntingFormSettings(data);
+        }
       } catch (error) {
         console.error('Error loading settings:', error);
       }
@@ -117,6 +132,17 @@ export default function ApiSettingsPage() {
     setActiveTab(tabName);
     // Clear any previous save status
     setSaveStatus({ success: false, message: '' });
+  };
+  
+  // Handle Punting Form API form changes
+  const handlePuntingFormChange = (e) => {
+    const { id, value } = e.target;
+    
+    if (id === 'punting-form-key') {
+      setPuntingFormSettings({ ...puntingFormSettings, apiKey: value });
+    } else if (id === 'punting-form-endpoint') {
+      setPuntingFormSettings({ ...puntingFormSettings, endpoint: value });
+    }
   };
   
   // Handle Racing API form changes
@@ -330,6 +356,47 @@ export default function ApiSettingsPage() {
       setIsSaving(false);
     }
   };
+  
+  // Save Punting Form API settings
+  const savePuntingFormSettings = async () => {
+    setIsSaving(true);
+    setSaveStatus({ success: false, message: '' });
+    
+    try {
+      const response = await fetch('/api/settings/punting-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(puntingFormSettings),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Update the settings with the validation result
+        setPuntingFormSettings({
+          ...puntingFormSettings,
+          isValid: data.isValid,
+          lastValidated: new Date().toISOString(),
+          validationError: data.validationError
+        });
+        
+        setSaveStatus({
+          success: true,
+          message: data.isValid
+            ? 'Punting Form API settings saved and validated successfully!'
+            : `Settings saved but validation failed: ${data.validationError}`
+        });
+      } else {
+        setSaveStatus({ success: false, message: `Error: ${data.error}` });
+      }
+    } catch (error) {
+      setSaveStatus({ success: false, message: `Error: ${error.message}` });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col p-6">
@@ -349,6 +416,16 @@ export default function ApiSettingsPage() {
             }`}
           >
             Racing Data API
+          </button>
+          <button
+            onClick={() => handleTabChange('punting-form')}
+            className={`px-4 py-2 font-medium ${
+              activeTab === 'punting-form'
+                ? 'text-indigo-400 border-b-2 border-indigo-400'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Punting Form API
           </button>
           <button
             onClick={() => handleTabChange('weather')}
@@ -389,6 +466,90 @@ export default function ApiSettingsPage() {
           {saveStatus.message}
         </div>
       )}
+
+      {/* Punting Form API Configuration */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" style={{display: activeTab === 'punting-form' ? 'grid' : 'none'}}>
+        <div className="bg-white/10 p-6 rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold mb-4">Punting Form API Configuration</h2>
+          <p className="text-sm opacity-70 mb-4">Configure API settings for Punting Form racing data</p>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="punting-form-key">API Key</Label>
+              <Input
+                id="punting-form-key"
+                value={puntingFormSettings.apiKey}
+                onChange={handlePuntingFormChange}
+                placeholder="Enter your Punting Form API key"
+                className="bg-white/5 border border-white/20"
+                type="password"
+              />
+              <p className="text-xs opacity-70 mt-1">Required for authentication with the Punting Form API</p>
+            </div>
+
+            <div>
+              <Label htmlFor="punting-form-endpoint">API Endpoint URL</Label>
+              <Input
+                id="punting-form-endpoint"
+                value={puntingFormSettings.endpoint}
+                onChange={handlePuntingFormChange}
+                placeholder="https://www.puntingform.com.au/api"
+                className="bg-white/5 border border-white/20"
+              />
+              <p className="text-xs opacity-70 mt-1">Default: https://www.puntingform.com.au/api</p>
+            </div>
+
+            <Button
+              className="bg-indigo-900 hover:bg-purple-900"
+              onClick={savePuntingFormSettings}
+              disabled={isSaving}
+            >
+              {isSaving ? 'Saving...' : 'Save Punting Form API Configuration'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="bg-white/10 p-6 rounded-lg shadow-lg">
+          <h2 className="text-xl font-bold mb-4">Punting Form API Status</h2>
+          <p className="text-sm opacity-70 mb-4">Check connection status and API validation</p>
+          <div className="mb-6 p-4 bg-white/5 rounded-md border border-white/10">
+            <h3 className="font-medium mb-2">Connection Status</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 p-3 rounded-md border border-white/10">
+                <div className="text-sm opacity-70">API Status</div>
+                <div className="flex items-center mt-1">
+                  <div className={`w-3 h-3 rounded-full ${puntingFormSettings.isValid ? 'bg-green-500' : 'bg-red-500'} mr-2`}></div>
+                  <div>{puntingFormSettings.isValid ? 'Connected' : 'Not Connected'}</div>
+                </div>
+              </div>
+              <div className="bg-white/5 p-3 rounded-md border border-white/10">
+                <div className="text-sm opacity-70">Last Validated</div>
+                <div className="mt-1">
+                  {puntingFormSettings.lastValidated
+                    ? new Date(puntingFormSettings.lastValidated).toLocaleString()
+                    : 'Never'}
+                </div>
+              </div>
+            </div>
+            {puntingFormSettings.validationError && (
+              <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-md text-sm">
+                <strong>Validation Error:</strong> {puntingFormSettings.validationError}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+            <Button
+              className="bg-indigo-900 hover:bg-purple-900"
+              onClick={savePuntingFormSettings}
+            >
+              Test API Connection
+            </Button>
+            <Button variant="outline" className="opacity-100">
+              View API Documentation
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Racing Data API Configuration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8" style={{display: activeTab === 'racing' ? 'grid' : 'none'}}>

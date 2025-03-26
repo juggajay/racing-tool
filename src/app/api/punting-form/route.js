@@ -1,15 +1,46 @@
 // Punting Form API Integration
 // Based on documentation: https://documenter.getpostman.com/view/10712595/TzJu8wZa
 
+import fs from 'fs';
+import path from 'path';
+
+// Path to the settings file
+const settingsFilePath = path.join(process.cwd(), 'data', 'settings', 'punting-form-api.json');
+
+// Get settings from the settings file
+const getSettings = () => {
+  try {
+    if (fs.existsSync(settingsFilePath)) {
+      const settingsData = fs.readFileSync(settingsFilePath, 'utf8');
+      return JSON.parse(settingsData);
+    }
+  } catch (error) {
+    console.error('Error reading settings file:', error);
+  }
+  
+  // Return default settings if file doesn't exist or there's an error
+  return {
+    apiKey: '5b0df8bf-da9a-4d1e-995d-9b7a002aa836', // Default API key
+    endpoint: 'https://www.puntingform.com.au/api',
+    isValid: false
+  };
+};
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Get the endpoint from query parameters
-    const endpoint = searchParams.get('endpoint');
+    // Get settings from the settings file
+    const settings = getSettings();
     
-    // API key for authentication
-    const apiKey = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836';
+    // Get the endpoint from query parameters
+    const endpointParam = searchParams.get('endpoint');
+    
+    // API key from settings
+    const apiKey = settings.apiKey;
+    
+    // Base API URL from settings
+    const apiBaseUrl = settings.endpoint || 'https://www.puntingform.com.au/api';
     
     // Date parameter (default to today)
     const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
@@ -20,8 +51,19 @@ export async function GET(request) {
     // Include barrier trials parameter
     const includeBarrierTrials = searchParams.get('includeBarrierTrials') === 'true';
     
+    // Check if API key is available
+    if (!apiKey) {
+      return Response.json(
+        {
+          error: 'API key is not configured',
+          message: 'Please configure your Punting Form API key in the settings page'
+        },
+        { status: 401 }
+      );
+    }
+    
     // Validate required parameters
-    if (!endpoint) {
+    if (!endpointParam) {
       return Response.json(
         { error: 'Endpoint parameter is required' },
         { status: 400 }
@@ -31,11 +73,11 @@ export async function GET(request) {
     // Determine which service to use based on the endpoint
     let service = '';
     
-    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpoint)) {
+    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpointParam)) {
       service = 'formdataservice';
-    } else if (endpoint === 'GetAllScratchings') {
+    } else if (endpointParam === 'GetAllScratchings') {
       service = 'scratchingsservice';
-    } else if (endpoint === 'GetRatings') {
+    } else if (endpointParam === 'GetRatings') {
       service = 'ratingsservice';
     } else {
       return Response.json(
@@ -45,15 +87,15 @@ export async function GET(request) {
     }
     
     // Build the API URL according to the documentation
-    let apiUrl = `https://www.puntingform.com.au/api/${service}/${endpoint}/${date}`;
+    let apiUrl = `${apiBaseUrl}/${service}/${endpointParam}/${date}`;
     
     // Add includeBarrierTrials parameter for endpoints that support it
-    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpoint)) {
+    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpointParam)) {
       apiUrl += `/${includeBarrierTrials ? 'true' : 'false'}`;
     }
     
     // Add raceId parameter for GetRatings endpoint
-    if (endpoint === 'GetRatings' && raceId) {
+    if (endpointParam === 'GetRatings' && raceId) {
       apiUrl += `/${raceId}`;
     }
     
