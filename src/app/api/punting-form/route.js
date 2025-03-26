@@ -4,11 +4,11 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'https://www.puntingform.com.au/api/formdataservice'; // Base URL from documentation
+const API_BASE_URL = 'http://www.puntingform.com.au/api'; // Base URL from documentation
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // User's API key
 
 // Mock data for development and testing
-const USE_MOCK_DATA = false; // Set to false to use the real API with the provided key
+const USE_MOCK_DATA = false; // Using the real API with the provided key
 
 // Helper function to format date in the required format (d-MMM-yyyy)
 function formatDate(date) {
@@ -168,12 +168,24 @@ export async function GET(request) {
       });
     }
     
-    // Build the API URL based on the FormDataService documentation
-    let apiUrl = `${API_BASE_URL}/${endpoint}`;
+    // Build the API URL based on the documentation
+    // The format is: http://www.puntingform.com.au/api/service/endpoint/parameters?ApiKey=key
     
-    // Format the URL according to the API documentation
-    // The format is: /endpoint/date/includeBarrierTrials?ApiKey=key
-    // For example: /ExportMeetings/10-Apr-2021/false?ApiKey=12345
+    // Determine which service to use based on the endpoint
+    let service = '';
+    
+    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpoint)) {
+      service = 'formdataservice';
+    } else if (endpoint === 'GetAllScratchings') {
+      service = 'scratchingsservice';
+    } else if (endpoint === 'GetRatings') {
+      service = 'ratingsservice';
+    } else {
+      service = 'formdataservice';
+    }
+    
+    // Build the base URL with the service
+    let apiUrl = `${API_BASE_URL}/${service}/${endpoint}`;
     
     // Add date parameter
     apiUrl += `/${date}`;
@@ -300,9 +312,9 @@ export async function GET(request) {
     // Return a clear error message
     return Response.json(
       {
-        error: 'Service temporarily unavailable',
-        message: 'Using mock data until a valid API key is provided. To use the real API, set USE_MOCK_DATA to false and provide a valid API key.',
-        details: error.message
+        error: 'API Connection Issue',
+        message: 'Unable to connect to the Punting Form API. Please check your API key and try again.',
+        details: 'Using the recommended URL format: http://www.puntingform.com.au/api/service/endpoint'
       },
       { status: 503 }
     );
@@ -337,11 +349,24 @@ export async function POST(request) {
     // Note: The FormDataService API primarily uses GET requests according to the documentation
     // This POST method is provided for convenience to allow clients to send parameters in the request body
     
-    // Build the API URL based on the FormDataService documentation
-    let apiUrl = `${API_BASE_URL}/${endpoint}`;
+    // Build the API URL based on the documentation
+    // The format is: http://www.puntingform.com.au/api/service/endpoint/parameters?ApiKey=key
     
-    // Format the URL according to the API documentation
-    // The format is: /endpoint/date/includeBarrierTrials?ApiKey=key
+    // Determine which service to use based on the endpoint
+    let service = '';
+    
+    if (['ExportMeetings', 'ExportRaces', 'ExportFields'].includes(endpoint)) {
+      service = 'formdataservice';
+    } else if (endpoint === 'GetAllScratchings') {
+      service = 'scratchingsservice';
+    } else if (endpoint === 'GetRatings') {
+      service = 'ratingsservice';
+    } else {
+      service = 'formdataservice';
+    }
+    
+    // Build the base URL with the service
+    let apiUrl = `${API_BASE_URL}/${service}/${endpoint}`;
     
     // Add date parameter if provided, otherwise use today's date
     const formattedDate = date ? date : formatDate(new Date());
