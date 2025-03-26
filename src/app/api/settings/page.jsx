@@ -29,7 +29,7 @@ export default function ApiSettingsPage() {
   // State for Punting Form API settings
   const [puntingFormSettings, setPuntingFormSettings] = useState({
     apiKey: '',
-    endpoint: 'https://www.puntingform.com.au/api',
+    endpoint: 'https://api.puntingform.com.au/v2',
     isValid: false,
     lastValidated: null
   });
