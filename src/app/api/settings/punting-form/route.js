@@ -70,8 +70,9 @@ export async function POST(request) {
       const apiKey = settings.apiKey;
       const endpoint = settings.endpoint || 'https://www.puntingform.com.au/api';
       
-      // Use the form/comment endpoint for validation (V2 API)
-      const testUrl = `${endpoint}/form/comment`;
+      // Use the comment endpoint for validation (V2 API)
+      // Based on the official docs: https://docs.puntingform.com.au/reference/comment-1
+      const testUrl = `${endpoint}/comment`;
       
       const response = await fetch(testUrl, {
         method: 'GET',

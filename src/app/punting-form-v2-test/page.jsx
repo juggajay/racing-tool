@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 
 export default function PuntingFormV2TestPage() {
-  const [endpoint, setEndpoint] = useState('form/comment');
+  const [endpoint, setEndpoint] = useState('comment');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -47,10 +47,10 @@ export default function PuntingFormV2TestPage() {
             className="w-full p-2 border rounded"
             value={endpoint}
             onChange={(e) => setEndpoint(e.target.value)}
-            placeholder="e.g., form/comment"
+            placeholder="e.g., comment"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Enter the endpoint path (e.g., form/comment, form/race, etc.)
+            Enter the endpoint path (e.g., comment, race, etc.)
           </p>
         </div>
         
@@ -89,9 +89,9 @@ export default function PuntingFormV2TestPage() {
           <strong>Example Endpoints:</strong>
         </p>
         <ul className="list-disc pl-5 mb-2">
-          <li><code>form/comment</code> - Get form comments</li>
-          <li><code>form/race</code> - Get race form data</li>
-          <li><code>form/horse</code> - Get horse form data</li>
+          <li><code>comment</code> - Get form comments</li>
+          <li><code>race</code> - Get race form data</li>
+          <li><code>horse</code> - Get horse form data</li>
         </ul>
         <p className="mb-2">
           The API uses Bearer token authentication with your API key.

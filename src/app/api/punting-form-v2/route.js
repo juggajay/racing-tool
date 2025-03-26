@@ -33,7 +33,7 @@ export async function GET(request) {
     const settings = getSettings();
     
     // Get the endpoint from query parameters
-    const endpointParam = searchParams.get('endpoint') || 'form/comment';
+    const endpointParam = searchParams.get('endpoint') || 'comment';
     
     // API key from settings
     const apiKey = settings.apiKey;
