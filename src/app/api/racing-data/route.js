@@ -6,7 +6,7 @@ const API_BASE_URL = 'https://www.puntingform.com.au/api';
 const API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // User's API key
 
 // Configuration
-const USE_MOCK_DATA = false; // Set to true for development/testing without making real API calls
+const USE_MOCK_DATA = true; // Set to true for development/testing without making real API calls
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache duration in milliseconds
 
 // In-memory cache
@@ -134,6 +134,12 @@ function parseExportFieldsResponse(text) {
 
 // Function to fetch data from the Punting Form API
 async function fetchFromPuntingFormAPI(endpoint, date, includeBarrierTrials = false, raceId = null) {
+  // If using mock data, return mock data
+  if (USE_MOCK_DATA) {
+    console.log('Using mock data for Punting Form API');
+    return getMockData(endpoint, raceId);
+  }
+
   // Determine which service to use based on the endpoint
   let service = '';
   
@@ -172,14 +178,30 @@ async function fetchFromPuntingFormAPI(endpoint, date, includeBarrierTrials = fa
     // Make the request to the API
     const response = await fetch(apiUrl, {
       headers: {
-        'Accept': '*/*'  // Accept any content type as the API returns different formats
+        'Accept': '*/*',  // Accept any content type as the API returns different formats
+        'User-Agent': 'Racing-Tool/1.0' // Add a user agent to identify the client
       },
       // Add a timeout to prevent hanging
       signal: AbortSignal.timeout(15000) // 15 seconds timeout
     });
     
     if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      // Try to get error details from response
+      let errorText = '';
+      try {
+        errorText = await response.text();
+      } catch (e) {
+        errorText = 'Could not extract error details';
+      }
+      
+      console.error('API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: apiUrl,
+        errorText
+      });
+      
+      throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
     // For most endpoints, the response is a caret (^) delimited list of strings
@@ -519,5 +541,150 @@ export async function POST(request) {
       },
       { status: 500 }
     );
+  }
+}
+
+// Mock data functions for development and testing
+function getMockData(endpoint, raceId, meetingId) {
+  switch (endpoint) {
+    case 'ExportMeetings':
+      return [
+        {
+          meetingId: 176739,
+          track: "Coffs Harbour",
+          railPosition: "+4m 1000m - 350m where cutaway applies, True remainder",
+          TABMeeting: true,
+          meetingDate: "2025-03-26T00:00:00.000Z",
+          isBarrierTrial: false,
+          hasSectionals: false,
+          trackAbbrev: "COFF",
+          resulted: true,
+          races: []
+        },
+        {
+          meetingId: 176742,
+          track: "Echuca",
+          railPosition: "True Entire Circuit",
+          TABMeeting: true,
+          meetingDate: "2025-03-26T00:00:00.000Z",
+          isBarrierTrial: false,
+          hasSectionals: false,
+          trackAbbrev: "ECHA",
+          resulted: true,
+          races: []
+        }
+      ];
+    case 'ExportRaces':
+      const races = [
+        {
+          raceId: 868438,
+          meetingId: 176739,
+          raceName: "Lindsay Jacobs Memorial Hcp-C1",
+          raceNo: 1,
+          prizeMoney: 22000,
+          starters: 8,
+          startTime: "2025-03-26T12:40:00.000Z",
+          class: "Class 1",
+          distance: 1012,
+          ageRestrictions: "3YO+",
+          sexRestrictions: "No",
+          weightType: "Handicap"
+        },
+        {
+          raceId: 868439,
+          meetingId: 176739,
+          raceName: "John Sleeman Memorial Hcp (C1)",
+          raceNo: 2,
+          prizeMoney: 22000,
+          starters: 10,
+          startTime: "2025-03-26T13:15:00.000Z",
+          class: "Class 1",
+          distance: 1012,
+          ageRestrictions: "3YO+",
+          sexRestrictions: "No",
+          weightType: "Handicap"
+        },
+        {
+          raceId: 868432,
+          meetingId: 176742,
+          raceName: "Bruce Hopkins Memorial Mdn-3",
+          raceNo: 1,
+          prizeMoney: 22000,
+          starters: 12,
+          startTime: "2025-03-26T11:50:00.000Z",
+          class: "Maiden",
+          distance: 1315,
+          ageRestrictions: "3YO+",
+          sexRestrictions: "No",
+          weightType: "Set Weights"
+        }
+      ];
+      
+      // Filter by meetingId if provided
+      if (meetingId) {
+        return races.filter(race => race.meetingId.toString() === meetingId);
+      }
+      
+      return races;
+    case 'ExportFields':
+      const fields = [
+        {
+          fieldId: 123456,
+          raceId: 868438,
+          tabNo: 1,
+          position: 1,
+          margin: 0,
+          horse: "Northern Star",
+          trainer: "John Smith",
+          jockey: "James Johnson",
+          weight: 56.5,
+          barrier: 3,
+          inRun: "1-1-1",
+          flucs: "6.0-5.5-6.5",
+          priceSP: 6.5,
+          priceTAB: 6.0
+        },
+        {
+          fieldId: 123457,
+          raceId: 868438,
+          tabNo: 2,
+          position: 2,
+          margin: 0.5,
+          horse: "Swift Thunder",
+          trainer: "Mary Jones",
+          jockey: "Sarah Williams",
+          weight: 55.0,
+          barrier: 5,
+          inRun: "3-2-2",
+          flucs: "8.0-7.5-8.0",
+          priceSP: 8.0,
+          priceTAB: 7.5
+        },
+        {
+          fieldId: 123458,
+          raceId: 868439,
+          tabNo: 1,
+          position: 1,
+          margin: 0,
+          horse: "Midnight Runner",
+          trainer: "David Brown",
+          jockey: "Michael Davis",
+          weight: 57.0,
+          barrier: 2,
+          inRun: "2-1-1",
+          flucs: "4.0-4.5-4.0",
+          priceSP: 4.0,
+          priceTAB: 4.2
+        }
+      ];
+      
+      // Filter by raceId if provided
+      if (raceId) {
+        return fields.filter(field => field.raceId.toString() === raceId);
+      }
+      
+      return fields;
+    default:
+      return [];
   }
 }
