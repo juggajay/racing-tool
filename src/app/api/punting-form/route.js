@@ -3,7 +3,7 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'http://old.puntingform.com.au/api'; // Alternative URL suggested in documentation
+const API_BASE_URL = 'https://api.puntingform.com.au/v2'; // Updated based on new documentation
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
 
 // Disable mock API as per user request
@@ -33,52 +33,31 @@ export async function GET(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the requested endpoint and parameters
-    // The correct format is: baseUrl/service/endpoint/parameters?ApiKey=key
-    // For example: https://www.puntingform.com.au/api/formdataservice/ExportMeetings/10-Apr-2021?ApiKey=12345
-    let service = '';
-    
-    // Determine which service to use based on the endpoint
-    switch(endpoint) {
-      case 'races':
-        service = 'formdataservice';
-        break;
-      case 'scratchings':
-        service = 'scratchingsservice';
-        break;
-      case 'ratings':
-        service = 'ratingsservice';
-        break;
-      default:
-        service = 'formdataservice';
-    }
-    
-    // Build the base URL with the service
-    let apiUrl = `${API_BASE_URL}/${service}`;
-    
-    // Add specific endpoint based on the requested data
-    if (endpoint === 'races') {
-      apiUrl += '/ExportMeetings';
-      
-      // Add date parameter if provided
-      if (date) {
-        apiUrl += `/${date}`;
-      }
-    } else if (endpoint === 'scratchings') {
-      apiUrl += '/GetAllScratchings';
-    } else if (endpoint === 'ratings') {
-      apiUrl += '/GetRatings';
-      
-      // Add track and date parameters if provided
-      if (track && date) {
-        apiUrl += `/${track}/${date}`;
-      }
-    }
+    // Build the API URL based on the new documentation
+    // The correct format is: baseUrl/form/comment?apiKey=key&startDate=date
+    let apiUrl = `${API_BASE_URL}/form/comment`;
     
     const queryParams = new URLSearchParams();
     
-    // Add API key to query parameters with the correct parameter name
-    queryParams.append('ApiKey', API_KEY);
+    // Add required parameters
+    queryParams.append('apiKey', API_KEY);
+    
+    // Add startDate parameter (required)
+    // Use current date if not provided
+    const startDate = date || new Date().toISOString().split('T')[0];
+    queryParams.append('startDate', startDate);
+    
+    // Add optional parameters if provided
+    if (endpoint === 'bestbets') {
+      queryParams.append('commentType', 0); // BestBets = 0
+    } else if (endpoint === 'racenet') {
+      queryParams.append('commentType', 1); // RaceNet = 1
+    }
+    
+    // Add jurisdiction if provided
+    if (track) {
+      queryParams.append('jurisdiction', track);
+    }
     
     // Add parameters if they exist
     if (date) queryParams.append('date', date);
@@ -202,36 +181,34 @@ export async function POST(request) {
     
     // Mock API is disabled as per user request
     
-    // Build the API URL based on the requested endpoint and parameters
-    // The correct format is: baseUrl/service/endpoint/parameters?ApiKey=key
-    let service = '';
+    // Build the API URL based on the new documentation
+    // The correct format is: baseUrl/form/comment?apiKey=key&startDate=date
+    let apiUrl = `${API_BASE_URL}/form/comment`;
     
-    // Determine which service to use based on the endpoint
-    switch(endpoint) {
-      case 'races':
-        service = 'formdataservice';
-        break;
-      case 'scratchings':
-        service = 'scratchingsservice';
-        break;
-      case 'ratings':
-        service = 'ratingsservice';
-        break;
-      default:
-        service = 'formdataservice';
+    // Prepare parameters
+    const requestParams = parameters || {};
+    
+    // Add required parameters
+    requestParams.apiKey = API_KEY;
+    
+    // Add startDate parameter (required)
+    // Use current date if not provided
+    if (!requestParams.startDate) {
+      requestParams.startDate = new Date().toISOString().split('T')[0];
     }
     
-    // Build the base URL with the service
-    let apiUrl = `${API_BASE_URL}/${service}`;
-    
-    // Add specific endpoint based on the action
-    if (action) {
-      apiUrl += `/${action}`;
+    // Add optional parameters if provided
+    if (endpoint === 'bestbets') {
+      requestParams.commentType = 0; // BestBets = 0
+    } else if (endpoint === 'racenet') {
+      requestParams.commentType = 1; // RaceNet = 1
     }
     
-    // Add API key as query parameter with the correct parameter name
+    // Add query parameters to URL
     const queryParams = new URLSearchParams();
-    queryParams.append('ApiKey', API_KEY);
+    for (const [key, value] of Object.entries(requestParams)) {
+      queryParams.append(key, value);
+    }
     apiUrl += `?${queryParams.toString()}`;
     
     console.log('Posting to Punting Form API:', apiUrl);
