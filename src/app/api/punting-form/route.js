@@ -3,7 +3,7 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'https://www.puntingform.com.au/api'; // Correct base URL from documentation
+const API_BASE_URL = 'http://old.puntingform.com.au/api'; // Alternative URL suggested in documentation
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
 
 // Disable mock API as per user request
