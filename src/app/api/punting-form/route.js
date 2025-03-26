@@ -4,7 +4,7 @@
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
 const API_BASE_URL = 'https://api.puntingform.com.au';
-let API_KEY = ''; // This will be set from the request
+let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
 
 export async function GET(request) {
   try {
