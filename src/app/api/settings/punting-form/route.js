@@ -76,8 +76,8 @@ export async function POST(request) {
       const response = await fetch(testUrl, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'accept': 'application/json',
+          'X-API-KEY': apiKey
         },
         signal: AbortSignal.timeout(10000) // 10 seconds timeout
       });

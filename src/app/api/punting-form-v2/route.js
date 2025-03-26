@@ -58,11 +58,12 @@ export async function GET(request) {
     console.log(`Fetching from Punting Form API V2: ${apiUrl}`);
     
     // Make the request to the API with proper headers
+    // Following the exact format from the official documentation
     const options = {
       method: 'GET',
       headers: {
         'accept': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'X-API-KEY': apiKey
       },
       // Add a timeout to prevent hanging
       signal: AbortSignal.timeout(15000) // 15 seconds timeout
