@@ -2,40 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 
-// Sample discussion data
-const discussionData = {
-  id: 1,
-  title: "Melbourne Cup 2025 Early Predictions",
-  author: "RacingExpert",
-  authorAvatar: "RE",
-  authorColor: "from-indigo-600 to-purple-600",
-  date: "Mar 25, 2025",
-  content: `
-    <p>With the Melbourne Cup 2025 still months away, I thought it would be interesting to start a discussion about early predictions and horses to watch.</p>
-    
-    <p>Based on recent form and performances in key lead-up races, here are my top 5 early contenders:</p>
-    
-    <ol>
-      <li><strong>Northern Thunder</strong> - Impressive staying performances in Europe</li>
-      <li><strong>Southern Star</strong> - Local hope with strong form over distance</li>
-      <li><strong>Eastern Wind</strong> - Japanese raider with excellent credentials</li>
-      <li><strong>Western Flame</strong> - Progressive stayer from leading stable</li>
-      <li><strong>Central Power</strong> - Last year's runner-up looking to go one better</li>
-    </ol>
-    
-    <p>What are your thoughts? Any early picks or dark horses to watch?</p>
-  `,
-  views: 342,
-  likes: 28,
-  tags: ["Melbourne Cup", "Predictions"],
-  pinned: true
-};
-
-// Sample comments
+// Sample comments (in a real app, these would come from the API too)
 const sampleComments = [
   {
     id: 1,
@@ -119,10 +90,40 @@ export default function DiscussionPage() {
   const params = useParams();
   const discussionId = params.id;
   
+  const [discussion, setDiscussion] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(sampleComments);
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+  
+  // Fetch discussion data from API
+  useEffect(() => {
+    const fetchDiscussion = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/community/discussions/${discussionId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch discussion');
+        }
+        
+        const data = await response.json();
+        setDiscussion(data.discussion);
+      } catch (err) {
+        console.error('Error fetching discussion:', err);
+        setError('Failed to load discussion. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (discussionId) {
+      fetchDiscussion();
+    }
+  }, [discussionId]);
   
   const handleAddComment = () => {
     if (!newComment.trim()) return;
@@ -143,7 +144,7 @@ export default function DiscussionPage() {
     setNewComment("");
   };
   
-  const handleAddReply = (commentId: number) => {
+  const handleAddReply = (commentId) => {
     if (!replyContent.trim()) return;
     
     const newReply = {
@@ -172,6 +173,59 @@ export default function DiscussionPage() {
     setReplyContent("");
   };
 
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col p-4 md:p-6 max-w-[1200px] mx-auto">
+        <div className="flex items-center gap-2 mb-6">
+          <Link href="/community">
+            <Button variant="outline" size="sm">← Back to Community</Button>
+          </Link>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading discussion...</div>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen flex-col p-4 md:p-6 max-w-[1200px] mx-auto">
+        <div className="flex items-center gap-2 mb-6">
+          <Link href="/community">
+            <Button variant="outline" size="sm">← Back to Community</Button>
+          </Link>
+        </div>
+        <div className="bg-red-900/50 border border-red-500 text-white p-6 rounded-md">
+          <h2 className="text-xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
+          <Button className="mt-4" asChild>
+            <Link href="/community">Return to Community</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (!discussion) {
+    return (
+      <main className="flex min-h-screen flex-col p-4 md:p-6 max-w-[1200px] mx-auto">
+        <div className="flex items-center gap-2 mb-6">
+          <Link href="/community">
+            <Button variant="outline" size="sm">← Back to Community</Button>
+          </Link>
+        </div>
+        <div className="bg-yellow-900/50 border border-yellow-500 text-white p-6 rounded-md">
+          <h2 className="text-xl font-bold mb-2">Discussion Not Found</h2>
+          <p>The discussion you're looking for could not be found.</p>
+          <Button className="mt-4" asChild>
+            <Link href="/community">Return to Community</Link>
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col p-4 md:p-6 max-w-[1200px] mx-auto">
       <div className="flex items-center gap-2 mb-6">
@@ -185,28 +239,28 @@ export default function DiscussionPage() {
       {/* Discussion Header */}
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <div className="flex items-start gap-4">
-          <div className={`w-12 h-12 bg-gradient-to-br ${discussionData.authorColor} rounded-full flex items-center justify-center text-lg font-bold`}>
-            {discussionData.authorAvatar}
+          <div className={`w-12 h-12 bg-gradient-to-br ${discussion.authorColor} rounded-full flex items-center justify-center text-lg font-bold`}>
+            {discussion.authorAvatar}
           </div>
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              {discussionData.pinned && (
+              {discussion.pinned && (
                 <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded">Pinned</span>
               )}
-              <h1 className="text-xl md:text-2xl font-bold">{discussionData.title}</h1>
+              <h1 className="text-xl md:text-2xl font-bold">{discussion.title}</h1>
             </div>
             <div className="flex flex-wrap gap-1 mb-2">
-              {discussionData.tags.map(tag => (
+              {discussion.tags && discussion.tags.map(tag => (
                 <span key={tag} className="text-xs bg-white/10 px-2 py-0.5 rounded-full">
                   {tag}
                 </span>
               ))}
             </div>
             <div className="flex flex-wrap gap-x-4 text-sm text-gray-400">
-              <span>By {discussionData.author}</span>
-              <span>Started {discussionData.date}</span>
-              <span>{discussionData.views} views</span>
-              <span>{discussionData.likes} likes</span>
+              <span>By {discussion.author}</span>
+              <span>Started {discussion.date}</span>
+              <span>{discussion.views} views</span>
+              <span>{discussion.likes} likes</span>
             </div>
           </div>
         </div>
@@ -214,7 +268,7 @@ export default function DiscussionPage() {
         <div className="mt-6 border-t border-white/10 pt-4">
           <div 
             className="prose prose-invert max-w-none prose-p:my-2 prose-ol:my-2 prose-li:my-1"
-            dangerouslySetInnerHTML={{ __html: discussionData.content }}
+            dangerouslySetInnerHTML={{ __html: discussion.content }}
           />
         </div>
         
@@ -242,41 +296,384 @@ export default function DiscussionPage() {
             </Button>
           </div>
           <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1"></circle>
-              <circle cx="19" cy="12" r="1"></circle>
-              <circle cx="5" cy="12" r="1"></circle>
-            </svg>
-            More
-          </Button>
+                        disabled={!replyContent.trim()}
+                      >
+                        Post
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setReplyContent("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Nested Replies */}
+                  {comment.replies.length > 0 && (
+                    <div className="mt-4 pl-4 border-l border-white/10 space-y-4">
+                      {comment.replies.map(reply => (
+                        <div key={reply.id} className="flex items-start gap-3">
+                          <div className={`w-8 h-8 bg-gradient-to-br ${reply.authorColor} rounded-full flex items-center justify-center text-xs font-bold`}>
+                            {reply.authorAvatar}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold">{reply.author}</span>
+                              <span className="text-xs text-gray-400">{reply.date} at {reply.time}</span>
+                            </div>
+                            <div className="mt-1">
+                              {reply.content}
+                            </div>
+                            <div className="mt-1">
+                              <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M7 10v12l10-6.5V3L7 10z"></path>
+                                </svg>
+                                {reply.likes}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Add Comment Form */}
+        <div className="mt-6">
+          <h3 className="font-bold mb-2">Add Your Comment</h3>
+          <div className="flex flex-col gap-2">
+            <textarea
+              className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+              placeholder="Write your comment here..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            ></textarea>
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+              >
+                Post Comment
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* Comments Section */}
+      
+      {/* Related Discussions */}
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
-        <h2 className="text-lg font-bold mb-4">{comments.length} Replies</h2>
-        
-        <div className="space-y-6">
-          {comments.map(comment => (
-            <div key={comment.id} className="border-b border-white/10 pb-4 mb-4 last:border-0 last:mb-0 last:pb-0">
-              <div className="flex items-start gap-3">
-                <div className={`w-10 h-10 bg-gradient-to-br ${comment.authorColor} rounded-full flex items-center justify-center text-sm font-bold`}>
-                  {comment.authorAvatar}
+        <h2 className="text-lg font-bold mb-4">Related Discussions</h2>
+        <div className="space-y-2">
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/2" className="font-bold hover:text-blue-400">
+              Melbourne Cup 2024 Results Analysis
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingExpert</span>
+              <span>Nov 5, 2024</span>
+              <span>42 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/3" className="font-bold hover:text-blue-400">
+              International Horses in Australian Racing
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By FormAnalyst</span>
+              <span>Feb 12, 2025</span>
+              <span>28 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/4" className="font-bold hover:text-blue-400">
+              Group 1 Races Calendar 2025
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingFan99</span>
+              <span>Jan 5, 2025</span>
+              <span>15 replies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="text-center">
+        <p className="text-xs md:text-sm opacity-70">
+          Australian Horse Racing Prediction System © 2025
+        </p>
+      </div>
+    </main>
+  );
+}                      {comment.likes}
+                    </button>
+                    <button 
+                      className="text-sm text-gray-400 hover:text-white"
+                      onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                    >
+                      Reply
+                    </button>
+                  </div>
+                  
+                  {/* Reply Form */}
+                  {replyingTo === comment.id && (
+                    <div className="mt-3 flex gap-2">
+                      <Input
+                        placeholder="Write a reply..."
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        className="bg-white/5 border border-white/20"
+                      />
+                      <Button 
+                        size="sm"
+                        onClick={() => handleAddReply(comment.id)}
+                        disabled={!replyContent.trim()}
+                      >
+                        Post
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setReplyContent("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Nested Replies */}
+                  {comment.replies.length > 0 && (
+                    <div className="mt-4 pl-4 border-l border-white/10 space-y-4">
+                      {comment.replies.map(reply => (
+                        <div key={reply.id} className="flex items-start gap-3">
+                          <div className={`w-8 h-8 bg-gradient-to-br ${reply.authorColor} rounded-full flex items-center justify-center text-xs font-bold`}>
+                            {reply.authorAvatar}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold">{reply.author}</span>
+                              <span className="text-xs text-gray-400">{reply.date} at {reply.time}</span>
+                            </div>
+                            <div className="mt-1">
+                              {reply.content}
+                            </div>
+                            <div className="mt-1">
+                              <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M7 10v12l10-6.5V3L7 10z"></path>
+                                </svg>
+                                {reply.likes}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-bold">{comment.author}</span>
-                    <span className="text-xs text-gray-400">{comment.date} at {comment.time}</span>
-                  </div>
-                  <div className="mt-2">
-                    {comment.content}
-                  </div>
-                  <div className="mt-2 flex gap-3">
-                    <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 10v12l10-6.5V3L7 10z"></path>
-                      </svg>
-                      {comment.likes}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Add Comment Form */}
+        <div className="mt-6">
+          <h3 className="font-bold mb-2">Add Your Comment</h3>
+          <div className="flex flex-col gap-2">
+            <textarea
+              className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+              placeholder="Write your comment here..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            ></textarea>
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+              >
+                Post Comment
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Related Discussions */}
+      <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
+        <h2 className="text-lg font-bold mb-4">Related Discussions</h2>
+        <div className="space-y-2">
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/2" className="font-bold hover:text-blue-400">
+              Melbourne Cup 2024 Results Analysis
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingExpert</span>
+              <span>Nov 5, 2024</span>
+              <span>42 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/3" className="font-bold hover:text-blue-400">
+              International Horses in Australian Racing
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By FormAnalyst</span>
+              <span>Feb 12, 2025</span>
+              <span>28 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/4" className="font-bold hover:text-blue-400">
+              Group 1 Races Calendar 2025
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingFan99</span>
+              <span>Jan 5, 2025</span>
+              <span>15 replies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="text-center">
+        <p className="text-xs md:text-sm opacity-70">
+          Australian Horse Racing Prediction System © 2025
+        </p>
+      </div>
+    </main>
+  );
+}                        onClick={() => handleAddReply(comment.id)}
+                        disabled={!replyContent.trim()}
+                      >
+                        Post
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setReplyingTo(null);
+                          setReplyContent("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Nested Replies */}
+                  {comment.replies.length > 0 && (
+                    <div className="mt-4 pl-4 border-l border-white/10 space-y-4">
+                      {comment.replies.map(reply => (
+                        <div key={reply.id} className="flex items-start gap-3">
+                          <div className={`w-8 h-8 bg-gradient-to-br ${reply.authorColor} rounded-full flex items-center justify-center text-xs font-bold`}>
+                            {reply.authorAvatar}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-bold">{reply.author}</span>
+                              <span className="text-xs text-gray-400">{reply.date} at {reply.time}</span>
+                            </div>
+                            <div className="mt-1">
+                              {reply.content}
+                            </div>
+                            <div className="mt-1">
+                              <button className="text-sm text-gray-400 hover:text-white flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M7 10v12l10-6.5V3L7 10z"></path>
+                                </svg>
+                                {reply.likes}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Add Comment Form */}
+        <div className="mt-6">
+          <h3 className="font-bold mb-2">Add Your Comment</h3>
+          <div className="flex flex-col gap-2">
+            <textarea
+              className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
+              placeholder="Write your comment here..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            ></textarea>
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+              >
+                Post Comment
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Related Discussions */}
+      <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
+        <h2 className="text-lg font-bold mb-4">Related Discussions</h2>
+        <div className="space-y-2">
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/2" className="font-bold hover:text-blue-400">
+              Melbourne Cup 2024 Results Analysis
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingExpert</span>
+              <span>Nov 5, 2024</span>
+              <span>42 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/3" className="font-bold hover:text-blue-400">
+              International Horses in Australian Racing
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By FormAnalyst</span>
+              <span>Feb 12, 2025</span>
+              <span>28 replies</span>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10">
+            <Link href="/community/discussion/4" className="font-bold hover:text-blue-400">
+              Group 1 Races Calendar 2025
+            </Link>
+            <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-gray-400">
+              <span>By RacingFan99</span>
+              <span>Jan 5, 2025</span>
+              <span>15 replies</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="text-center">
+        <p className="text-xs md:text-sm opacity-70">
+          Australian Horse Racing Prediction System © 2025
+        </p>
+      </div>
+    </main>
+  );
+}                      {comment.likes}
                     </button>
                     <button 
                       className="text-sm text-gray-400 hover:text-white"

@@ -31,6 +31,19 @@ module.exports = {
           },
         },
       },
+      // Add custom spacing for better mobile layouts
+      spacing: {
+        '18': '4.5rem',
+        '22': '5.5rem',
+      },
+      // Add custom min heights for better mobile components
+      minHeight: {
+        '44': '44px', // Minimum touch target size
+      },
+      // Add custom screen sizes for more precise responsive control
+      screens: {
+        'xs': '480px',
+      },
     },
   },
   plugins: [],
