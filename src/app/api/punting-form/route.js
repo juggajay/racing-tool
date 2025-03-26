@@ -3,7 +3,7 @@
 
 // API credentials - these should be stored in environment variables in production
 // For now, we'll store them here for demonstration purposes
-const API_BASE_URL = 'https://api.puntingform.com.au';
+const API_BASE_URL = 'https://api.puntingform.com.au/v1'; // Updated to include API version
 let API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // Default API key
 
 export async function GET(request) {
@@ -32,32 +32,57 @@ export async function GET(request) {
     let apiUrl = `${API_BASE_URL}/${endpoint}`;
     const queryParams = new URLSearchParams();
     
+    // Add API key to query parameters
+    queryParams.append('key', API_KEY);
+    
     // Add parameters if they exist
     if (date) queryParams.append('date', date);
     if (track) queryParams.append('track', track);
     if (raceNumber) queryParams.append('race_number', raceNumber);
     if (horseId) queryParams.append('horse_id', horseId);
     
-    // Add query parameters to URL if any exist
-    if (queryParams.toString()) {
-      apiUrl += `?${queryParams.toString()}`;
-    }
+    // Add query parameters to URL
+    apiUrl += `?${queryParams.toString()}`;
+    
+    console.log('Fetching from Punting Form API:', apiUrl);
     
     // Make the request to the Punting Form API
     const response = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      // Try to get error details from response
+      let errorData;
+      let errorText;
+      
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try {
+          errorText = await response.text();
+        } catch (e2) {
+          errorText = 'Could not extract error details';
+        }
+      }
+      
+      console.error('Punting Form API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        errorText
+      });
+      
       return Response.json(
-        { 
-          error: 'Error fetching data from Punting Form API', 
+        {
+          error: 'Error fetching data from Punting Form API',
           status: response.status,
-          details: errorData
+          statusText: response.statusText,
+          url: apiUrl,
+          details: errorData || errorText
         },
         { status: response.status }
       );
@@ -74,7 +99,12 @@ export async function GET(request) {
   } catch (error) {
     console.error('Punting Form API error:', error);
     return Response.json(
-      { error: 'Internal server error', details: error.message },
+      {
+        error: 'Internal server error',
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        url: apiUrl
+      },
       { status: 500 }
     );
   }
@@ -113,23 +143,52 @@ export async function POST(request) {
       apiUrl += `/${action}`;
     }
     
+    // Add API key as query parameter
+    const queryParams = new URLSearchParams();
+    queryParams.append('key', API_KEY);
+    apiUrl += `?${queryParams.toString()}`;
+    
+    console.log('Posting to Punting Form API:', apiUrl);
+    
     // Make the request to the Punting Form API
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify(parameters || {}),
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      // Try to get error details from response
+      let errorData;
+      let errorText;
+      
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        try {
+          errorText = await response.text();
+        } catch (e2) {
+          errorText = 'Could not extract error details';
+        }
+      }
+      
+      console.error('Punting Form API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+        errorText
+      });
+      
       return Response.json(
-        { 
-          error: 'Error posting data to Punting Form API', 
+        {
+          error: 'Error posting data to Punting Form API',
           status: response.status,
-          details: errorData
+          statusText: response.statusText,
+          url: apiUrl,
+          details: errorData || errorText
         },
         { status: response.status }
       );
@@ -146,7 +205,12 @@ export async function POST(request) {
   } catch (error) {
     console.error('Punting Form API error:', error);
     return Response.json(
-      { error: 'Internal server error', details: error.message },
+      {
+        error: 'Internal server error',
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        url: apiUrl
+      },
       { status: 500 }
     );
   }
