@@ -1,143 +1,156 @@
-# Horse Racing Website API Documentation
+# Racing Tool API Documentation
 
-This document provides information about the API functionality added to the Horse Racing Website.
+This document provides information about the APIs available in the Racing Tool application.
 
-## Authentication API
+## Racing Data API
 
-The authentication API allows users to register, login, and logout. It uses Cloudflare D1 Database for storing user data and sessions.
+The Racing Data API provides access to horse racing data from the Punting Form API. It offers both GET and POST endpoints for retrieving different types of racing data.
 
-### Endpoints
+### Base URL
 
-#### POST /api/auth
+```
+/api/racing-data
+```
 
-This endpoint handles user authentication operations.
+### GET Endpoint
 
-**Request Body:**
+The GET endpoint allows you to retrieve racing data based on various parameters.
+
+#### Parameters
+
+- `endpoint` (optional): The Punting Form API endpoint to use. Default is 'ExportMeetings'.
+  - Available values: 'ExportMeetings', 'ExportRaces', 'ExportFields'
+- `date` (optional): The date for which to retrieve data in ISO format (YYYY-MM-DD). Default is today.
+- `includeBarrierTrials` (optional): Whether to include barrier trials. Default is false.
+- `raceId` (optional): The ID of a specific race. Used for filtering fields.
+- `meetingId` (optional): The ID of a specific meeting. Used for filtering races.
+- `skipCache` (optional): Whether to bypass the cache and fetch fresh data. Default is false.
+
+#### Examples
+
+1. Get all meetings for today:
+```
+GET /api/racing-data
+```
+
+2. Get all meetings for a specific date:
+```
+GET /api/racing-data?date=2025-03-26
+```
+
+3. Get races for a specific meeting:
+```
+GET /api/racing-data?endpoint=ExportRaces&meetingId=176739
+```
+
+4. Get fields for a specific race:
+```
+GET /api/racing-data?endpoint=ExportFields&raceId=868438
+```
+
+### POST Endpoint
+
+The POST endpoint provides more complex operations that may require multiple API calls or data processing.
+
+#### Request Body
 
 ```json
 {
-  "username": "string",
-  "password": "string",
-  "action": "login | register | logout"
+  "action": "actionName",
+  "date": "YYYY-MM-DD",
+  "includeBarrierTrials": false,
+  "raceId": "raceId",
+  "meetingId": "meetingId"
 }
 ```
 
-**Actions:**
+#### Available Actions
 
-1. **login**: Authenticates a user and creates a session
-   - Success Response: `{ "success": true, "user": { "id": number, "username": string, "role": string } }`
-   - Error Response: `{ "error": "Invalid credentials" }` (401)
+1. `getMeetingsWithRaces`: Get all meetings with their races.
+   - Required parameters: none
+   - Optional parameters: `date`, `includeBarrierTrials`
 
-2. **register**: Creates a new user account
-   - Success Response: `{ "success": true, "message": "User registered successfully" }`
-   - Error Response: `{ "error": "Username already exists" }` (400)
+2. `getRaceWithFields`: Get a specific race with its fields.
+   - Required parameters: `raceId`
+   - Optional parameters: `date`, `includeBarrierTrials`, `meetingId`
 
-3. **logout**: Ends the current user session
-   - Success Response: `{ "success": true, "message": "Logged out successfully" }`
+#### Examples
 
-#### GET /api/auth
+1. Get all meetings with their races:
+```json
+POST /api/racing-data
+{
+  "action": "getMeetingsWithRaces",
+  "date": "2025-03-26"
+}
+```
 
-This endpoint checks if a user is currently authenticated.
+2. Get a specific race with its fields:
+```json
+POST /api/racing-data
+{
+  "action": "getRaceWithFields",
+  "raceId": "868438",
+  "meetingId": "176739"
+}
+```
 
-**Response:**
+## Test API
 
-- Authenticated: `{ "authenticated": true, "user": { "id": number, "username": string, "role": string } }`
-- Not Authenticated: `{ "authenticated": false }`
+The Test API provides a simple way to test the Racing Data API.
 
-## Database Setup
+### Base URL
 
-The database schema is defined in the `migrations/0002_users.sql` file. It creates two tables:
+```
+/api/test
+```
 
-1. **users**: Stores user information
-   - id: Primary key
-   - username: Unique username
-   - email: Unique email address
-   - password_hash: Bcrypt hashed password
-   - full_name: Optional full name
-   - role: User role (admin or user)
-   - created_at: Timestamp of account creation
-   - updated_at: Timestamp of last update
+### GET Endpoint
 
-2. **sessions**: Stores active user sessions
-   - id: Primary key (UUID)
-   - user_id: Foreign key to users table
-   - expires_at: Session expiration timestamp
-   - created_at: Timestamp of session creation
+#### Parameters
 
-## Authentication Components
+- `type` (optional): The type of test to run. Default is 'meetings'.
+  - Available values: 'meetings', 'races', 'fields', 'complex'
+- `meetingId` (required for 'races' and 'complex' types): The ID of a specific meeting.
+- `raceId` (required for 'fields' and optional for 'complex' types): The ID of a specific race.
 
-### AuthStatus Component
+#### Examples
 
-The `AuthStatus` component displays the current authentication status in the UI. It shows:
+1. Test getting all meetings:
+```
+GET /api/test
+```
 
-- "Sign In" and "Register" buttons when the user is not authenticated
-- Username and "Sign Out" button when the user is authenticated
+2. Test getting races for a specific meeting:
+```
+GET /api/test?type=races&meetingId=176739
+```
 
-### Login Page
+3. Test getting fields for a specific race:
+```
+GET /api/test?type=fields&raceId=868438
+```
 
-The login page (`/login`) allows users to sign in with their username and password.
+4. Test complex operation (getRaceWithFields):
+```
+GET /api/test?type=complex&raceId=868438&meetingId=176739
+```
 
-### Register Page
+## Punting Form API Integration
 
-The register page (`/register`) allows new users to create an account.
+The Racing Data API integrates with the Punting Form API (https://www.puntingform.com.au/) using the FormDataService API. For more information about the Punting Form API, see the [API documentation](https://documenter.getpostman.com/view/10712595/TzJu8wZa).
 
-## API Settings Page
+### API Key
 
-The API settings page (`/api/settings`) allows administrators to configure API integrations for live racing data. It includes:
+The API uses the following API key for authentication with the Punting Form API:
+```
+5b0df8bf-da9a-4d1e-995d-9b7a002aa836
+```
 
-1. **Live Data API Configuration**
-   - API Provider selection
-   - API Key and Secret management
-   - Endpoint URL configuration
-   - Update frequency settings
+In a production environment, this key should be stored securely in environment variables.
 
-2. **Model Training Integration**
-   - Training mode configuration
-   - Data threshold settings
-   - Training schedule options
-   - Historical data inclusion options
+### Caching
 
-3. **API Status and Testing**
-   - Connection status monitoring
-   - Test API connection functionality
-   - Data synchronization controls
-   - API logs access
+The Racing Data API implements caching to improve performance and reduce the number of requests to the Punting Form API. The cache duration is set to 5 minutes by default.
 
-## Required Dependencies
-
-The following dependencies are required for the API functionality:
-
-- bcryptjs: For password hashing
-- uuid: For generating unique session IDs
-- @cloudflare/workers-types: For Cloudflare D1 Database types
-
-## Getting Started
-
-1. Install the required dependencies:
-   ```
-   npm install
-   ```
-
-2. Set up the database:
-   - For local development, you can use SQLite
-   - For production, configure Cloudflare D1 Database
-
-3. Run the migrations:
-   ```
-   npx wrangler d1 execute <DATABASE_NAME> --file=./migrations/0002_users.sql
-   ```
-
-4. Start the development server:
-   ```
-   npm run dev
-   ```
-
-5. Access the API settings page at `/api/settings`
-
-## Default Admin Account
-
-A default admin account is created during migration:
-- Username: admin
-- Password: admin123
-
-**Important:** Change the default admin password in production environments.
+To bypass the cache and fetch fresh data, use the `skipCache=true` parameter with the GET endpoint.
