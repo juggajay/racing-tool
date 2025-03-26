@@ -73,54 +73,34 @@ export async function GET(request) {
     // Map the endpoint parameter to the actual API endpoint
     let apiUrl = '';
     
-    // Based on the new documentation: https://documenter.getpostman.com/view/10712595/TzJvdwbM
+    // Based on the official documentation: https://docs.puntingform.com.au/reference/comment-1
     switch (endpointParam) {
-      case 'GetMeetingsByDate':
-        apiUrl = `${apiBaseUrl}/GetMeetingsByDate?date=${date}&ApiKey=${apiKey}`;
+      case 'comment':
+        apiUrl = `${apiBaseUrl}/comment`;
         break;
-      case 'GetRacesByMeetingId':
-        const meetingId = searchParams.get('meetingId');
-        if (!meetingId) {
-          return Response.json(
-            { error: 'Meeting ID is required for GetRacesByMeetingId endpoint' },
-            { status: 400 }
-          );
-        }
-        apiUrl = `${apiBaseUrl}/GetRacesByMeetingId?meetingid=${meetingId}&ApiKey=${apiKey}`;
-        break;
-      case 'GetRaceFields':
+      case 'race':
         const raceId = searchParams.get('raceId');
         if (!raceId) {
           return Response.json(
-            { error: 'Race ID is required for GetRaceFields endpoint' },
+            { error: 'Race ID is required for race endpoint' },
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetRaceFields?raceid=${raceId}&ApiKey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/race?raceid=${raceId}`;
         break;
-      case 'GetHorseProfile':
+      case 'horse':
         const horseId = searchParams.get('horseId');
         if (!horseId) {
           return Response.json(
-            { error: 'Horse ID is required for GetHorseProfile endpoint' },
+            { error: 'Horse ID is required for horse endpoint' },
             { status: 400 }
           );
         }
-        apiUrl = `${apiBaseUrl}/GetHorseProfile?horseid=${horseId}&ApiKey=${apiKey}`;
-        break;
-      case 'GetHorseForm':
-        const horseFormId = searchParams.get('horseId');
-        if (!horseFormId) {
-          return Response.json(
-            { error: 'Horse ID is required for GetHorseForm endpoint' },
-            { status: 400 }
-          );
-        }
-        apiUrl = `${apiBaseUrl}/GetHorseForm?horseid=${horseFormId}&ApiKey=${apiKey}`;
+        apiUrl = `${apiBaseUrl}/horse?horseid=${horseId}`;
         break;
       default:
         return Response.json(
-          { error: 'Invalid endpoint. Supported endpoints are: GetMeetingsByDate, GetRacesByMeetingId, GetRaceFields, GetHorseProfile, GetHorseForm' },
+          { error: 'Invalid endpoint. Supported endpoints are: comment, race, horse' },
           { status: 400 }
         );
     }
@@ -133,8 +113,8 @@ export async function GET(request) {
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'Accept': '*/*',
-        'User-Agent': 'Racing-Tool/1.0'
+        'accept': 'application/json',
+        'X-API-KEY': apiKey
       },
       // Add a timeout to prevent hanging
       signal: AbortSignal.timeout(15000) // 15 seconds timeout
@@ -190,7 +170,7 @@ export async function GET(request) {
     // Return the data
     return Response.json({
       success: true,
-      endpoint,
+      endpoint: endpointParam,
       data,
       timestamp: new Date().toISOString()
     });
