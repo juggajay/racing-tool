@@ -2,7 +2,7 @@
 // Based on the FormDataService API documentation: https://documenter.getpostman.com/view/10712595/TzJu8wZa
 
 // API credentials - these should be stored in environment variables in production
-const API_BASE_URL = 'http://www.puntingform.com.au/api';
+const API_BASE_URL = 'https://www.puntingform.com.au/api';
 const API_KEY = '5b0df8bf-da9a-4d1e-995d-9b7a002aa836'; // User's API key
 
 // Configuration
