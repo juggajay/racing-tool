@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .failure {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Direct API Test</h1>
+    <p>This page makes direct API calls to the Punting Form API without going through your server.</p>
+    
+    <div class="container">
+        <h2>API Configuration</h2>
+        
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" value="5b0df8bf-da9a-4d1e-995d-9b7a002aa836">
+        
+        <label for="startDate">Start Date (DD-Mon-YYYY):</label>
+        <input type="text" id="startDate">
+        
+        <label for="endpoint">Endpoint:</label>
+        <select id="endpoint">
+            <option value="form/comment">form/comment</option>
+            <option value="comment">comment (old format)</option>
+        </select>
+        
+        <button onclick="testApi()">Test API</button>
+    </div>
+    
+    <div id="requestDetails" class="container" style="display: none;">
+        <h2>Request Details</h2>
+        <pre id="requestInfo"></pre>
+    </div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <div id="result-container" style="display: none;">
+        <h2>API Response</h2>
+        <div id="status"></div>
+        <h3>Headers:</h3>
+        <pre id="headers"></pre>
+        <h3>Body:</h3>
+        <pre id="result"></pre>
+    </div>
+    
+    <div class="container">
+        <h2>Test Different Dates</h2>
+        <p>Try these dates to see if the API responds differently:</p>
+        <button onclick="setDate('today')">Today</button>
+        <button onclick="setDate('yesterday')">Yesterday</button>
+        <button onclick="setDate('lastWeek')">Last Week</button>
+        <button onclick="setDate('lastMonth')">Last Month</button>
+    </div>
+    
+    <script>
+        // Set default date to today in DD-Mon-YYYY format
+        function formatDate(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+        
+        document.getElementById('startDate').value = formatDate(new Date());
+        
+        // Set date to different values for testing
+        function setDate(type) {
+            const today = new Date();
+            let date;
+            
+            switch(type) {
+                case 'today':
+                    date = today;
+                    break;
+                case 'yesterday':
+                    date = new Date(today);
+                    date.setDate(date.getDate() - 1);
+                    break;
+                case 'lastWeek':
+                    date = new Date(today);
+                    date.setDate(date.getDate() - 7);
+                    break;
+                case 'lastMonth':
+                    date = new Date(today);
+                    date.setMonth(date.getMonth() - 1);
+                    break;
+                default:
+                    date = today;
+            }
+            
+            document.getElementById('startDate').value = formatDate(date);
+        }
+        
+        async function testApi() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('requestDetails').style.display = 'none';
+            
+            // Get values from form
+            const apiKey = document.getElementById('apiKey').value;
+            const startDate = document.getElementById('startDate').value;
+            const endpoint = document.getElementById('endpoint').value;
+            
+            // Validate inputs
+            if (!apiKey) {
+                showError('API Key is required');
+                return;
+            }
+            
+            if (!startDate) {
+                showError('Start Date is required');
+                return;
+            }
+            
+            try {
+                // Build the API URL
+                const apiUrl = `https://api.puntingform.com.au/v2/${endpoint}?startDate=${startDate}&apiKey=${apiKey}`;
+                
+                // Show request details
+                const requestDetails = {
+                    url: apiUrl,
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    }
+                };
+                
+                document.getElementById('requestInfo').textContent = JSON.stringify(requestDetails, null, 2);
+                document.getElementById('requestDetails').style.display = 'block';
+                
+                console.log('Making API call:', requestDetails);
+                
+                // Make the API call
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    }
+                });
+                
+                // Get response details
+                const status = response.status;
+                const statusText = response.statusText;
+                const headers = Object.fromEntries(response.headers.entries());
+                
+                // Show status
+                const statusElement = document.getElementById('status');
+                statusElement.className = response.ok ? 'success' : 'failure';
+                statusElement.textContent = `Status: ${status} ${statusText}`;
+                
+                // Show headers
+                document.getElementById('headers').textContent = JSON.stringify(headers, null, 2);
+                
+                // Try to parse the response
+                let responseData;
+                try {
+                    const text = await response.text();
+                    try {
+                        responseData = JSON.parse(text);
+                        document.getElementById('result').textContent = JSON.stringify(responseData, null, 2);
+                    } catch (e) {
+                        document.getElementById('result').textContent = text;
+                    }
+                } catch (e) {
+                    document.getElementById('result').textContent = 'Could not read response body';
+                }
+                
+                document.getElementById('result-container').style.display = 'block';
+            } catch (error) {
+                showError(`API Error: ${error.message}`);
+            }
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
