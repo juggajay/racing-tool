@@ -66,21 +66,28 @@ export async function POST(request) {
     let validationError = null;
 
     try {
-      // Try to validate the API key using our proxy approach
+      // Try to validate the API key using the correct endpoint format
       const apiKey = settings.apiKey;
       
-      // Use our proxy API which uses URL rewriting
+      // Use the correct endpoint format with query parameters
       try {
-        // Use the proxy API for validation
-        const testUrl = `/api/punting-form-proxy/comment`;
+        // Format today's date as DD-MMM-YYYY
+        const today = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = months[today.getMonth()];
+        const year = today.getFullYear();
+        const formattedDate = `${day}-${month}-${year}`;
         
-        console.log(`Validating Punting Form API settings with proxy: ${testUrl}`);
+        // Use the correct endpoint with query parameters
+        const testUrl = `https://api.puntingform.com.au/v2/form/comment?startDate=${formattedDate}&apiKey=${apiKey}`;
+        
+        console.log(`Validating Punting Form API settings with: ${testUrl}`);
         
         const response = await fetch(testUrl, {
           method: 'GET',
           headers: {
-            'accept': 'application/json',
-            'X-API-KEY': apiKey
+            'accept': 'application/json'
           },
           signal: AbortSignal.timeout(10000), // 10 seconds timeout
           cache: 'no-store'
