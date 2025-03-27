@@ -66,23 +66,21 @@ export async function POST(request) {
     let validationError = null;
 
     try {
-      // Try to validate the API key with a real request, but fall back to mock if needed
+      // Try to validate the API key using our proxy approach
       const apiKey = settings.apiKey;
-      const endpoint = settings.endpoint || 'https://api.puntingform.com.au/v2';
       
-      // First try the real API
+      // Use our proxy API which uses URL rewriting
       try {
-        // Use the comment endpoint for validation (V2 API)
-        const testUrl = `${endpoint}/comment`;
+        // Use the proxy API for validation
+        const testUrl = `/api/punting-form-proxy/comment`;
         
-        console.log(`Validating Punting Form API settings with: ${testUrl}`);
+        console.log(`Validating Punting Form API settings with proxy: ${testUrl}`);
         
         const response = await fetch(testUrl, {
           method: 'GET',
           headers: {
             'accept': 'application/json',
-            'X-API-KEY': apiKey,
-            'User-Agent': 'Racing-Tool/1.0'
+            'X-API-KEY': apiKey
           },
           signal: AbortSignal.timeout(10000), // 10 seconds timeout
           cache: 'no-store'
