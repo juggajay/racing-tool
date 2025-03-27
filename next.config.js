@@ -9,14 +9,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/punting-form-proxy/:path*',
-        destination: 'https://api.puntingform.com.au/v2/:path*',
-      },
-    ];
-  },
   async headers() {
     return [
       {
