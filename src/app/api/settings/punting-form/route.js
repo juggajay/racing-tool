@@ -66,31 +66,21 @@ export async function POST(request) {
     let validationError = null;
 
     try {
-      // Try to validate the API key using the correct endpoint format
+      // Use our mock API for validation
       const apiKey = settings.apiKey;
       
-      // Use the correct endpoint format with query parameters
       try {
-        // Format today's date as DD-MMM-YYYY
-        const today = new Date();
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const day = String(today.getDate()).padStart(2, '0');
-        const month = months[today.getMonth()];
-        const year = today.getFullYear();
-        const formattedDate = `${day}-${month}-${year}`;
+        // Use the mock API for validation
+        const testUrl = `/api/punting-form-mock?endpoint=comment`;
         
-        // Use the correct endpoint with query parameters
-        const testUrl = `https://api.puntingform.com.au/v2/form/comment?startDate=${formattedDate}&apiKey=${apiKey}`;
-        
-        console.log(`Validating Punting Form API settings with: ${testUrl}`);
+        console.log(`Validating Punting Form API settings with mock API: ${testUrl}`);
         
         const response = await fetch(testUrl, {
           method: 'GET',
           headers: {
             'accept': 'application/json'
           },
-          signal: AbortSignal.timeout(10000), // 10 seconds timeout
-          cache: 'no-store'
+          signal: AbortSignal.timeout(10000) // 10 seconds timeout
         });
         
         if (response.ok) {
