@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punting Form API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .error {
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Punting Form API Test</h1>
+    
+    <div class="container">
+        <h2>API Configuration</h2>
+        
+        <label for="apiKey">API Key:</label>
+        <input type="text" id="apiKey" value="5b0df8bf-da9a-4d1e-995d-9b7a002aa836">
+        
+        <label for="startDate">Start Date (DD-MMM-YYYY):</label>
+        <input type="text" id="startDate">
+        
+        <label for="endpoint">Endpoint:</label>
+        <select id="endpoint">
+            <option value="form/comment">form/comment</option>
+            <option value="comment">comment</option>
+            <option value="race">race</option>
+            <option value="horse">horse</option>
+        </select>
+        
+        <button onclick="testApi()">Test API</button>
+    </div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <div id="result-container" style="display: none;">
+        <h2>API Response</h2>
+        <pre id="result"></pre>
+    </div>
+    
+    <script>
+        // Set default date to today in DD-MMM-YYYY format
+        function formatDate(date) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+        
+        document.getElementById('startDate').value = formatDate(new Date());
+        
+        async function testApi() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const apiKey = document.getElementById('apiKey').value;
+            const startDate = document.getElementById('startDate').value;
+            const endpoint = document.getElementById('endpoint').value;
+            
+            // Validate inputs
+            if (!apiKey) {
+                showError('API Key is required');
+                return;
+            }
+            
+            if (!startDate) {
+                showError('Start Date is required');
+                return;
+            }
+            
+            try {
+                // Build the API URL
+                let apiUrl = `https://api.puntingform.com.au/v2/${endpoint}?startDate=${startDate}&apiKey=${apiKey}`;
+                
+                // For race and horse endpoints, add ID parameters if needed
+                if (endpoint === 'race') {
+                    const raceId = prompt('Enter Race ID:');
+                    if (raceId) {
+                        apiUrl += `&raceid=${raceId}`;
+                    }
+                } else if (endpoint === 'horse') {
+                    const horseId = prompt('Enter Horse ID:');
+                    if (horseId) {
+                        apiUrl += `&horseid=${horseId}`;
+                    }
+                }
+                
+                console.log('Calling API:', apiUrl);
+                
+                // Make the API call
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json'
+                    }
+                });
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('result-container').style.display = 'block';
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
