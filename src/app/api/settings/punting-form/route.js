@@ -66,14 +66,22 @@ export async function POST(request) {
     let validationError = null;
 
     try {
-      // Use our mock API for validation
+      // Try to validate the API key using the final implementation
       const apiKey = settings.apiKey;
       
       try {
-        // Use the mock API for validation
-        const testUrl = `/api/punting-form-mock?endpoint=comment`;
+        // Format today's date as DD-MMM-YYYY
+        const today = new Date();
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = months[today.getMonth()];
+        const year = today.getFullYear();
+        const formattedDate = `${day}-${month}-${year}`;
         
-        console.log(`Validating Punting Form API settings with mock API: ${testUrl}`);
+        // Use the final API implementation for validation
+        const testUrl = `/api/punting-form-final?endpoint=form/comment&startDate=${formattedDate}&apiKey=${apiKey}`;
+        
+        console.log(`Validating Punting Form API settings with: ${testUrl}`);
         
         const response = await fetch(testUrl, {
           method: 'GET',
