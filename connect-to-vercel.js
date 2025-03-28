@@ -34,4 +34,7 @@ console.log('');
 console.log('Your GitHub repository should now be connected to your Vercel project.');
 console.log('Any changes pushed to the main branch will automatically trigger a new deployment.');
 console.log('');
+console.log('Your project is currently deployed at:');
+console.log('https://horses-4tqzpm7bf-juggajays-projects.vercel.app');
+console.log('');
 console.log('For more information, visit: https://vercel.com/docs/git');

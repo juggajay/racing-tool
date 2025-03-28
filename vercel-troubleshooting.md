@@ -75,7 +75,7 @@ Try a manual deployment:
 Make sure your domain is correctly configured:
 
 1. Go to the "Domains" tab in your Vercel project
-2. Check if your domain (horses.vercel.app) is correctly configured
+2. Check if your domain (horses-4tqzpm7bf-juggajays-projects.vercel.app) is correctly configured
 3. If not, add it as a domain
 
 ## 7. Clear Browser Cache
