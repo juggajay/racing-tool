@@ -11,7 +11,7 @@ export default function TestPage() {
         <h2 className="text-xl font-semibold mb-2">Page Route Test</h2>
         <p>If you can see this page, page routes are working correctly!</p>
         <p className="mt-2">
-          <strong>Deployment URL:</strong> horses-4tqzpm7bf-juggajays-projects.vercel.app
+          <strong>Deployment URL:</strong> horses-rose.vercel.app
         </p>
         <p className="mt-2">
           <strong>Page Route:</strong> /test-page

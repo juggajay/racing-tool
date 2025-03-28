@@ -20,7 +20,7 @@ console.log('If you\'re already logged in and want to deploy immediately, run:')
 console.log('   vercel --prod');
 console.log('');
 console.log('Your project should be deployed to:');
-console.log('https://horses-4tqzpm7bf-juggajays-projects.vercel.app');
+console.log('https://horses-rose.vercel.app');
 console.log('');
 console.log('You can also manage your project at:');
 console.log('https://vercel.com/juggajays-projects/horses');

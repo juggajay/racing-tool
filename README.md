@@ -74,7 +74,7 @@ If automatic deployments are not triggering, you can manually deploy from the Ve
 2. Click on the "Deployments" tab.
 3. Click the "Deploy" button and select "Deploy" from the dropdown.
 
-Current deployment: [https://horses-4tqzpm7bf-juggajays-projects.vercel.app](https://horses-4tqzpm7bf-juggajays-projects.vercel.app)
+Current deployment: [https://horses-rose.vercel.app](https://horses-rose.vercel.app)
 
 ## Troubleshooting Vercel Deployment
 

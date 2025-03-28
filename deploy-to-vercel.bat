@@ -26,7 +26,7 @@ echo.
 echo Deployment process completed.
 echo.
 echo If the deployment was successful, your project should be available at:
-echo https://horses-4tqzpm7bf-juggajays-projects.vercel.app
+echo https://horses-rose.vercel.app
 echo.
 echo You can also manage your project at:
 echo https://vercel.com/juggajays-projects/horses
