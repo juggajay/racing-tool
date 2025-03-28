@@ -6,9 +6,51 @@ import { FileUpload } from "@/components/ui/file-upload"
 import Link from "next/link"
 import { useState } from "react";
 
+interface BacktestResult {
+  id: string;
+  date: string;
+  model: string;
+  timePeriods: number;
+  bettingStrategy: string;
+  summary: {
+    top1Accuracy: string;
+    top3Accuracy: string;
+    top4Accuracy: string;
+    roi: string;
+    totalRaces: number;
+    correctPredictions: number;
+  };
+  periodResults: Array<{
+    period: number;
+    date: string;
+    top1Accuracy: string;
+    top3Accuracy: string;
+    top4Accuracy: string;
+    roi: string;
+  }>;
+  racePredictions: Array<{
+    race: string;
+    predictedWinner: string;
+    predictedOdds: string;
+    actualWinner: string;
+    actualOdds: string;
+    correct: boolean;
+  }>;
+  computationTime: string;
+}
+
 export default function BacktestPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [timePeriods, setTimePeriods] = useState<number>(5);
+  const [model, setModel] = useState<string>("ensemble");
+  const [bettingStrategy, setBettingStrategy] = useState<string>("value");
+  const [computationEngine, setComputationEngine] = useState<string>("local");
+  const [parallelProcessing, setParallelProcessing] = useState<string>("2");
+  const [cacheSettings, setCacheSettings] = useState<string>("memory");
+  const [logLevel, setLogLevel] = useState<string>("info");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<BacktestResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -19,6 +61,51 @@ export default function BacktestPage() {
     const value = parseInt(e.target.value);
     if (value >= 2 && value <= 10) {
       setTimePeriods(value);
+    }
+  };
+  
+  const handleRunBacktest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    
+    try {
+      // Prepare the request data
+      const requestData = {
+        model,
+        timePeriods,
+        bettingStrategy,
+        computationEngine,
+        parallelProcessing,
+        cacheSettings,
+        logLevel,
+        fileName: selectedFile?.name || null
+      };
+      
+      // Call the API
+      const response = await fetch('/api/backtest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      
+      // Handle the response
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to run backtest');
+      }
+      
+      // Parse the result
+      const resultData = await response.json();
+      setResult(resultData);
+    } catch (err) {
+      console.error('Error running backtest:', err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,11 +123,15 @@ export default function BacktestPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white/10 p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-bold mb-4">Run Backtesting</h2>
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleRunBacktest}>
             <div>
               <label className="block mb-2 text-sm font-medium">Prediction Model</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-                <option value="ensemble" selected>Ensemble (Recommended)</option>
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+              >
+                <option value="ensemble">Ensemble (Recommended)</option>
                 <option value="random_forest">Random Forest</option>
                 <option value="gradient_boosting">Gradient Boosting</option>
               </select>
@@ -61,16 +152,20 @@ export default function BacktestPage() {
 
             <div>
               <label className="block mb-2 text-sm font-medium">Betting Strategy</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-                <option value="value" selected>Value Betting</option>
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={bettingStrategy}
+                onChange={(e) => setBettingStrategy(e.target.value)}
+              >
+                <option value="value">Value Betting</option>
                 <option value="favorite">Favorite</option>
                 <option value="probability">Highest Probability</option>
               </select>
             </div>
 
             <div>
-              <FileUpload 
-                label="Upload Dataset (CSV, Excel, or JSON)" 
+              <FileUpload
+                label="Upload Dataset (CSV, Excel, or JSON)"
                 helperText="Upload your historical race data for backtesting"
                 onFileChange={handleFileChange}
                 accept=".csv,.xlsx,.json"
@@ -83,7 +178,19 @@ export default function BacktestPage() {
               )}
             </div>
 
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">Run Backtest</Button>
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
+            >
+              {loading ? 'Running Backtest...' : 'Run Backtest'}
+            </Button>
+            
+            {error && (
+              <div className="mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
           </form>
         </div>
 
@@ -152,8 +259,12 @@ export default function BacktestPage() {
           <div className="space-y-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Computation Engine</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
-                <option value="local" selected>Local (CPU)</option>
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={computationEngine}
+                onChange={(e) => setComputationEngine(e.target.value)}
+              >
+                <option value="local">Local (CPU)</option>
                 <option value="gpu">Local (GPU)</option>
                 <option value="cloud">Cloud Computing</option>
               </select>
@@ -162,9 +273,13 @@ export default function BacktestPage() {
             
             <div>
               <label className="block mb-2 text-sm font-medium">Parallel Processing</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={parallelProcessing}
+                onChange={(e) => setParallelProcessing(e.target.value)}
+              >
                 <option value="1">Single Thread</option>
-                <option value="2" selected>2 Threads</option>
+                <option value="2">2 Threads</option>
                 <option value="4">4 Threads</option>
                 <option value="8">8 Threads</option>
                 <option value="max">Maximum Available</option>
@@ -176,9 +291,13 @@ export default function BacktestPage() {
           <div className="space-y-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Cache Settings</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={cacheSettings}
+                onChange={(e) => setCacheSettings(e.target.value)}
+              >
                 <option value="none">No Caching</option>
-                <option value="memory" selected>Memory Cache</option>
+                <option value="memory">Memory Cache</option>
                 <option value="disk">Disk Cache</option>
                 <option value="both">Memory + Disk Cache</option>
               </select>
@@ -187,10 +306,14 @@ export default function BacktestPage() {
             
             <div>
               <label className="block mb-2 text-sm font-medium">Log Level</label>
-              <select className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+              <select
+                className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                value={logLevel}
+                onChange={(e) => setLogLevel(e.target.value)}
+              >
                 <option value="error">Error Only</option>
                 <option value="warn">Warning</option>
-                <option value="info" selected>Information</option>
+                <option value="info">Information</option>
                 <option value="debug">Debug</option>
                 <option value="trace">Trace (Verbose)</option>
               </select>
@@ -203,6 +326,103 @@ export default function BacktestPage() {
           <Button className="bg-blue-600 hover:bg-blue-700">Save Backend Settings</Button>
         </div>
       </div>
+
+      {/* Results Section - Only shown when results are available */}
+      {result && (
+        <div className="bg-white/10 p-6 rounded-lg shadow-lg mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Backtest Results</h2>
+            <div className="text-sm opacity-70">
+              Computation Time: {result.computationTime}s
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white/5 p-4 rounded-lg">
+              <div className="text-sm opacity-70 mb-1">Top-1 Accuracy</div>
+              <div className="text-2xl font-bold">{result.summary.top1Accuracy}</div>
+            </div>
+            <div className="bg-white/5 p-4 rounded-lg">
+              <div className="text-sm opacity-70 mb-1">Top-3 Accuracy</div>
+              <div className="text-2xl font-bold">{result.summary.top3Accuracy}</div>
+            </div>
+            <div className="bg-white/5 p-4 rounded-lg">
+              <div className="text-sm opacity-70 mb-1">Top-4 Accuracy</div>
+              <div className="text-2xl font-bold">{result.summary.top4Accuracy}</div>
+            </div>
+            <div className="bg-white/5 p-4 rounded-lg">
+              <div className="text-sm opacity-70 mb-1">ROI</div>
+              <div className={`text-2xl font-bold ${parseFloat(result.summary.roi) > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {result.summary.roi}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <h3 className="font-bold mb-3">Period Results</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left pb-2">Period</th>
+                    <th className="text-left pb-2">Date</th>
+                    <th className="text-left pb-2">Top-1 Accuracy</th>
+                    <th className="text-left pb-2">Top-3 Accuracy</th>
+                    <th className="text-left pb-2">Top-4 Accuracy</th>
+                    <th className="text-left pb-2">ROI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.periodResults.map((period, index) => (
+                    <tr key={index} className="border-b border-white/10 hover:bg-white/5">
+                      <td className="py-2">{period.period}</td>
+                      <td className="py-2">{period.date}</td>
+                      <td className="py-2">{period.top1Accuracy}%</td>
+                      <td className="py-2">{period.top3Accuracy}%</td>
+                      <td className="py-2">{period.top4Accuracy}%</td>
+                      <td className={`py-2 ${parseFloat(period.roi) > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {parseFloat(period.roi) > 0 ? '+' : ''}{period.roi}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="font-bold mb-3">Race Predictions</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="text-left pb-2">Race</th>
+                    <th className="text-left pb-2">Predicted Winner</th>
+                    <th className="text-left pb-2">Predicted Odds</th>
+                    <th className="text-left pb-2">Actual Winner</th>
+                    <th className="text-left pb-2">Actual Odds</th>
+                    <th className="text-left pb-2">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.racePredictions.map((race, index) => (
+                    <tr key={index} className="border-b border-white/10 hover:bg-white/5">
+                      <td className="py-2">{race.race}</td>
+                      <td className="py-2">{race.predictedWinner}</td>
+                      <td className="py-2">${race.predictedOdds}</td>
+                      <td className="py-2">{race.actualWinner}</td>
+                      <td className="py-2">${race.actualOdds}</td>
+                      <td className={`py-2 ${race.correct ? 'text-green-500' : 'text-red-500'}`}>
+                        {race.correct ? 'Correct' : 'Incorrect'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white/10 p-6 rounded-lg shadow-lg mb-8">
         <h2 className="text-xl font-bold mb-4">Recent Backtests</h2>
