@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Data API Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #1a73e8;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0d62c9;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .file-list li {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .file-list li:hover {
+            background-color: #f5f5f5;
+        }
+        .sample-data {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Data API Test</h1>
+    <p>This page allows you to test the CSV Data API for horse racing data.</p>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="upload">Upload CSV</div>
+        <div class="tab" data-tab="view">View Data</div>
+        <div class="tab" data-tab="query">Query Data</div>
+        <div class="tab" data-tab="sample">Sample Data</div>
+    </div>
+    
+    <div class="tab-content active" id="upload-tab">
+        <div class="container">
+            <h2>Upload CSV Data</h2>
+            
+            <div>
+                <label for="csv-file">Select CSV File:</label>
+                <input type="file" id="csv-file" accept=".csv">
+            </div>
+            
+            <div>
+                <label for="csv-data">Or Paste CSV Data:</label>
+                <textarea id="csv-data" rows="10" placeholder="Paste CSV data here..."></textarea>
+            </div>
+            
+            <div>
+                <label for="filename">Filename:</label>
+                <input type="text" id="filename" placeholder="e.g., racing-data.csv">
+            </div>
+            
+            <button onclick="uploadCSV()">Upload CSV</button>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="view-tab">
+        <div class="container">
+            <h2>View CSV Files</h2>
+            
+            <button onclick="listFiles()">Refresh File List</button>
+            
+            <div id="file-list-container" style="margin-top: 20px;">
+                <h3>Available Files:</h3>
+                <ul id="file-list" class="file-list">
+                    <li>Loading files...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="query-tab">
+        <div class="container">
+            <h2>Query CSV Data</h2>
+            
+            <div>
+                <label for="query-filename">Filename:</label>
+                <input type="text" id="query-filename" placeholder="e.g., racing-data.csv">
+            </div>
+            
+            <div>
+                <label for="market-id">Market ID (optional):</label>
+                <input type="text" id="market-id" placeholder="e.g., 1.128908590">
+            </div>
+            
+            <div>
+                <label for="event-id">Event ID (optional):</label>
+                <input type="text" id="event-id" placeholder="e.g., 28060237">
+            </div>
+            
+            <div>
+                <label for="runner-id">Runner ID (optional):</label>
+                <input type="text" id="runner-id" placeholder="e.g., 12286075">
+            </div>
+            
+            <button onclick="queryData()">Query Data</button>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="sample-tab">
+        <div class="container">
+            <h2>Sample CSV Data</h2>
+            
+            <p>Here's a sample of the expected CSV format:</p>
+            
+            <pre class="sample-data">timestamp,human_time,market_id,market_name,event_name,event_id,market_time,status,runner_id,runner_name,runner_status,sort_priority
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,12286075,1. Lord Van Percy,ACTIVE,1
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,11933585,2. Hale Soriano,ACTIVE,2
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,5783586,3. Tunes,ACTIVE,3</pre>
+            
+            <p>You can copy this sample data and paste it in the "Upload CSV" tab to test the API.</p>
+            
+            <button onclick="useSampleData()">Use Sample Data</button>
+        </div>
+    </div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <div id="result-container" style="display: none;">
+        <h2>API Response</h2>
+        <pre id="result"></pre>
+    </div>
+    
+    <script>
+        // Set up tabs
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show the corresponding tab content
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+        
+        // Helper function to show error
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+        }
+        
+        // Helper function to show result
+        function showResult(data) {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('result-container').style.display = 'block';
+        }
+        
+        // Upload CSV data
+        async function uploadCSV() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const file = document.getElementById('csv-file').files[0];
+            const csvData = document.getElementById('csv-data').value;
+            let filename = document.getElementById('filename').value;
+            
+            // Validate inputs
+            if (!file && !csvData) {
+                showError('Please select a file or paste CSV data');
+                return;
+            }
+            
+            if (!filename) {
+                if (file) {
+                    filename = file.name;
+                } else {
+                    filename = 'data-' + new Date().getTime() + '.csv';
+                }
+            }
+            
+            if (!filename.endsWith('.csv')) {
+                filename += '.csv';
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#upload-tab button');
+                button.innerHTML = 'Uploading... <span class="loading"></span>';
+                button.disabled = true;
+                
+                let response;
+                
+                if (file) {
+                    // Create FormData object
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    // Make the API call
+                    response = await fetch('/api/csv-data', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } else if (csvData) {
+                    // Make the API call with JSON data
+                    response = await fetch('/api/csv-data', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            csvData,
+                            filename
+                        })
+                    });
+                }
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+                
+                // Clear form
+                document.getElementById('csv-file').value = '';
+                document.getElementById('csv-data').value = '';
+                document.getElementById('filename').value = '';
+                
+                // Refresh file list if on view tab
+                if (document.querySelector('.tab[data-tab="view"]').classList.contains('active')) {
+                    listFiles();
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#upload-tab button');
+                button.innerHTML = 'Upload CSV';
+                button.disabled = false;
+            }
+        }
+        
+        // List available CSV files
+        async function listFiles() {
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#view-tab button');
+                button.innerHTML = 'Refreshing... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Make the API call
+                const response = await fetch('/api/csv-data');
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+                
+                if (data.files && data.files.length > 0) {
+                    data.files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        li.onclick = () => viewFile(file);
+                        fileList.appendChild(li);
+                    });
+                } else {
+                    fileList.innerHTML = '<li>No CSV files found</li>';
+                }
+                
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+                
+                const fileList = document.getElementById('file-list');
+                fileList.innerHTML = '<li>Error loading files</li>';
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#view-tab button');
+                button.innerHTML = 'Refresh File List';
+                button.disabled = false;
+            }
+        }
+        
+        // View a specific file
+        async function viewFile(filename) {
+            try {
+                // Make the API call
+                const response = await fetch(`/api/csv-data?filename=${encodeURIComponent(filename)}`);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+                
+                // Set the filename in the query tab
+                document.getElementById('query-filename').value = filename;
+                
+                // Switch to query tab
+                document.querySelector('.tab[data-tab="query"]').click();
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        // Query data
+        async function queryData() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const filename = document.getElementById('query-filename').value;
+            const marketId = document.getElementById('market-id').value;
+            const eventId = document.getElementById('event-id').value;
+            const runnerId = document.getElementById('runner-id').value;
+            
+            // Validate inputs
+            if (!filename) {
+                showError('Filename is required');
+                return;
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#query-tab button');
+                button.innerHTML = 'Querying... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Build the API URL
+                let apiUrl = `/api/csv-data?filename=${encodeURIComponent(filename)}`;
+                
+                if (marketId) {
+                    apiUrl += `&marketId=${encodeURIComponent(marketId)}`;
+                }
+                
+                if (eventId) {
+                    apiUrl += `&eventId=${encodeURIComponent(eventId)}`;
+                }
+                
+                if (runnerId) {
+                    apiUrl += `&runnerId=${encodeURIComponent(runnerId)}`;
+                }
+                
+                // Make the API call
+                const response = await fetch(apiUrl);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#query-tab button');
+                button.innerHTML = 'Query Data';
+                button.disabled = false;
+            }
+        }
+        
+        // Use sample data
+        function useSampleData() {
+            const sampleData = `timestamp,human_time,market_id,market_name,event_name,event_id,market_time,status,runner_id,runner_name,runner_status,sort_priority
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,12286075,1. Lord Van Percy,ACTIVE,1
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,11933585,2. Hale Soriano,ACTIVE,2
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,5783586,3. Tunes,ACTIVE,3
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,3283750,4. Cinnamon Carter,ACTIVE,4
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,3366695,5. Sly Romance,ACTIVE,5
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,11820991,6. Thunder Teddington,ACTIVE,6
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,10827310,7. Annus Mirabilis,ACTIVE,7
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,11933575,8. Bullish Stock,ACTIVE,8
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,1093168,9. Arianne,ACTIVE,9
+1482978429845,2016-12-28 21:27:09,1.128908590,R7 2800m Listed,Flem (AUS) 1st Jan,28060237,2017-01-01T06:20:00.000Z,OPEN,12144745,10. Anemoi,ACTIVE,10`;
+            
+            document.getElementById('csv-data').value = sampleData;
+            document.getElementById('filename').value = 'sample-racing-data.csv';
+            
+            // Switch to upload tab
+            document.querySelector('.tab[data-tab="upload"]').click();
+        }
+        
+        // Initialize by listing files
+        document.addEventListener('DOMContentLoaded', function() {
+            listFiles();
+        });
+    </script>
+</body>
+</html>
