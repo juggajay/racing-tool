@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button"
 import { FileUpload } from "@/components/ui/file-upload"
 import Link from "next/link"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface BacktestResult {
   id: string;
@@ -51,6 +51,33 @@ export default function BacktestPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [processingStage, setProcessingStage] = useState<string>("");
+  
+  // Set up event source for progress updates
+  useEffect(() => {
+    if (loading) {
+      const eventSource = new EventSource('/api/backtest/progress');
+      
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setProgress(data.progress);
+        setProcessingStage(data.stage);
+        
+        if (data.progress >= 100) {
+          eventSource.close();
+        }
+      };
+      
+      eventSource.onerror = () => {
+        eventSource.close();
+      };
+      
+      return () => {
+        eventSource.close();
+      };
+    }
+  }, [loading]);
   
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
@@ -69,6 +96,8 @@ export default function BacktestPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setProgress(0);
+    setProcessingStage("Initializing...");
     
     try {
       // Check if a file is selected
@@ -107,7 +136,27 @@ export default function BacktestPage() {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
+      setProgress(100);
+      setProcessingStage("Complete");
     }
+  };
+
+  // Progress bar component
+  const ProgressBar = ({ progress, stage }: { progress: number, stage: string }) => {
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between mb-1">
+          <span className="text-sm font-medium">{stage}</span>
+          <span className="text-sm font-medium">{progress}%</span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-2.5">
+          <div 
+            className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -186,6 +235,8 @@ export default function BacktestPage() {
             >
               {loading ? 'Running Backtest...' : 'Run Backtest'}
             </Button>
+            
+            {loading && <ProgressBar progress={progress} stage={processingStage} />}
             
             {error && (
               <div className="mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300">

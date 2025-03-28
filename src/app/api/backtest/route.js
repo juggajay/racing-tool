@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { updateProgress } from './progress/route';
 
 // Helper function to generate random accuracy between min and max
 function randomAccuracy(min, max) {
@@ -53,14 +54,23 @@ async function saveFile(formData) {
 }
 
 // Helper function to process the uploaded file
-async function processFile(filePath, model, timePeriods, bettingStrategy) {
+async function processFile(filePath, model, timePeriods, bettingStrategy, sessionId) {
   // In a real implementation, this would parse the file and run the backtest
   // For now, we'll just return mock data based on the model
   console.log(`Processing file: ${filePath}`);
   console.log(`Model: ${model}, Time Periods: ${timePeriods}, Betting Strategy: ${bettingStrategy}`);
 
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  // Update progress to 10% - Starting file processing
+  updateProgress(10, "Reading file...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Update progress to 20% - File read complete
+  updateProgress(20, "Parsing data...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Update progress to 30% - Data parsing complete
+  updateProgress(30, "Preparing model...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   // Return mock results based on the model
   let top1Accuracy, top3Accuracy, top4Accuracy, roi;
@@ -91,11 +101,20 @@ async function processFile(filePath, model, timePeriods, bettingStrategy) {
       roi = randomROI(4, 10);
   }
 
+  // Update progress to 50% - Model preparation complete
+  updateProgress(50, "Running backtest...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
   // Generate mock results for each time period
   const periodResults = [];
   const today = new Date();
   
   for (let i = 0; i < timePeriods; i++) {
+    // Update progress during period processing
+    const progressIncrement = 30 / timePeriods; // 30% of progress for all periods
+    updateProgress(50 + (i * progressIncrement), `Processing period ${i + 1} of ${timePeriods}...`, sessionId);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     const periodDate = new Date(today);
     periodDate.setDate(periodDate.getDate() - i * 7); // Each period is a week apart
     
@@ -109,6 +128,10 @@ async function processFile(filePath, model, timePeriods, bettingStrategy) {
     });
   }
   
+  // Update progress to 80% - Period processing complete
+  updateProgress(80, "Generating race predictions...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
   // Generate mock race predictions
   const racePredictions = [];
   const raceNames = [
@@ -130,6 +153,10 @@ async function processFile(filePath, model, timePeriods, bettingStrategy) {
     });
   }
 
+  // Update progress to 95% - Race predictions complete
+  updateProgress(95, "Finalizing results...", sessionId);
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   return {
     top1Accuracy,
     top3Accuracy,
@@ -142,6 +169,12 @@ async function processFile(filePath, model, timePeriods, bettingStrategy) {
 
 export async function POST(request) {
   try {
+    // Generate a unique session ID for this request
+    const sessionId = Date.now().toString();
+    
+    // Initialize progress
+    updateProgress(0, "Starting...", sessionId);
+    
     // Check if the request is multipart/form-data
     const contentType = request.headers.get('content-type') || '';
     
@@ -158,12 +191,15 @@ export async function POST(request) {
       console.log('Received backtest request with file upload:');
       console.log(`Model: ${model}, Time Periods: ${timePeriods}, Betting Strategy: ${bettingStrategy}`);
       
+      // Update progress to 5% - Request received
+      updateProgress(5, "Uploading file...", sessionId);
+      
       // Save the uploaded file
       const fileInfo = await saveFile(formData);
       console.log('File saved:', fileInfo);
       
       // Process the file
-      const results = await processFile(fileInfo.path, model, timePeriods, bettingStrategy);
+      const results = await processFile(fileInfo.path, model, timePeriods, bettingStrategy, sessionId);
       
       // Create the response
       const response = {
@@ -189,6 +225,9 @@ export async function POST(request) {
         }
       };
       
+      // Update progress to 100% - Processing complete
+      updateProgress(100, "Complete", sessionId);
+      
       // Clean up the temporary file
       try {
         fs.unlinkSync(fileInfo.path);
@@ -209,6 +248,9 @@ export async function POST(request) {
       const model = data.model || 'ensemble';
       const timePeriods = data.timePeriods || 5;
       const bettingStrategy = data.bettingStrategy || 'value';
+      
+      // Update progress to 10% - Request received
+      updateProgress(10, "Processing request...", sessionId);
       
       // Generate mock results based on the model
       let top1Accuracy, top3Accuracy, top4Accuracy, roi;
@@ -239,11 +281,20 @@ export async function POST(request) {
           roi = randomROI(4, 10);
       }
       
+      // Update progress to 40% - Model preparation complete
+      updateProgress(40, "Running backtest...", sessionId);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       // Generate mock results for each time period
       const periodResults = [];
       const today = new Date();
       
       for (let i = 0; i < timePeriods; i++) {
+        // Update progress during period processing
+        const progressIncrement = 40 / timePeriods; // 40% of progress for all periods
+        updateProgress(40 + (i * progressIncrement), `Processing period ${i + 1} of ${timePeriods}...`, sessionId);
+        await new Promise(resolve => setTimeout(resolve, 300));
+
         const periodDate = new Date(today);
         periodDate.setDate(periodDate.getDate() - i * 7); // Each period is a week apart
         
@@ -256,6 +307,10 @@ export async function POST(request) {
           roi: (parseFloat(roi) + (Math.random() * 2 - 1)).toFixed(1)
         });
       }
+      
+      // Update progress to 80% - Period processing complete
+      updateProgress(80, "Generating race predictions...", sessionId);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Generate mock race predictions
       const racePredictions = [];
@@ -278,6 +333,10 @@ export async function POST(request) {
         });
       }
       
+      // Update progress to 95% - Race predictions complete
+      updateProgress(95, "Finalizing results...", sessionId);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Create the response
       const response = {
         id: `BT${Date.now().toString().substring(6)}`,
@@ -297,6 +356,9 @@ export async function POST(request) {
         racePredictions,
         computationTime: (Math.random() * 5 + 2).toFixed(1)
       };
+      
+      // Update progress to 100% - Processing complete
+      updateProgress(100, "Complete", sessionId);
       
       // Return the mock results
       return NextResponse.json(response);
