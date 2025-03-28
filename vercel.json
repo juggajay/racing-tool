@@ -17,5 +17,10 @@
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/:path*", "destination": "/:path*" }
-  ]
+  ],
+  "functions": {
+    "src/app/api/backtest/progress/route.js": {
+      "runtime": "edge"
+    }
+  }
 }
