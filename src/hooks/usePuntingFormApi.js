@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
 // Reusable hook for fetching data from the Punting Form proxy API
+// Assumes API key is handled server-side via environment variables
 export function usePuntingFormApi(endpoint, params = {}, skip = false) {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,39 +14,14 @@ export function usePuntingFormApi(endpoint, params = {}, skip = false) {
       setError(null);
       setData(null); // Reset data on new fetch
 
-      let apiKey = null;
-      let storageError = null;
-      try {
-        // Ensure localStorage is available (client-side only)
-        if (typeof window !== 'undefined') {
-          apiKey = localStorage.getItem('puntingFormApiKey');
-          // --- DEBUGGING: Log the retrieved key ---
-          console.log(`[usePuntingFormApi] Retrieved API Key from localStorage: ${apiKey ? '***' + apiKey.slice(-4) : 'null'}`);
-          // --- END DEBUGGING ---
-        } else {
-           storageError = "localStorage not available (not client-side?).";
-           console.warn(storageError);
-        }
-      } catch (e) {
-        storageError = `Error accessing localStorage: ${e.message}`;
-        console.error(storageError, e);
-        setError(new Error("Could not access API key storage."));
-        setIsLoading(false);
-        return;
-      }
+      // --- Removed API Key retrieval from localStorage ---
+      // The proxy API now uses the server-side environment variable.
 
-      if (!apiKey) {
-        const errMsg = storageError || "Punting Form API key not found in local storage. Please save it on the Settings page.";
-        setError(new Error(errMsg));
-        setIsLoading(false);
-        return;
-      }
-
-      // Construct query string
+      // Construct query string (excluding api_key)
       const queryParams = new URLSearchParams({
         endpoint: endpoint,
-        api_key: apiKey,
-        ...params // Spread additional parameters
+        // api_key: apiKey, // Removed
+        ...params // Spread additional parameters like 'date' or 'meetingId'
       });
 
       const apiUrl = `/api/punting-form?${queryParams.toString()}`;
@@ -61,6 +37,7 @@ export function usePuntingFormApi(endpoint, params = {}, skip = false) {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               const errorData = await response.json();
+              // Use error/message field from response if available
               errorDetails = errorData.message || errorData.error || JSON.stringify(errorData);
             } else {
               errorDetails = await response.text();
@@ -70,7 +47,8 @@ export function usePuntingFormApi(endpoint, params = {}, skip = false) {
             errorDetails = "(Could not read error response body)";
             console.error(`[usePuntingFormApi] Error reading non-OK response body (${response.status}):`, e);
           }
-          errorMessage += ` - ${errorDetails.substring(0, 150)}`; // Limit length
+          // Include details in error message if concise
+          errorMessage += ` - ${errorDetails.substring(0, 150)}`;
           throw new Error(errorMessage);
         }
 
@@ -80,14 +58,14 @@ export function usePuntingFormApi(endpoint, params = {}, skip = false) {
         if (result.success) {
           setData(result.data); // Store the actual data part of the response
         } else {
-          // Handle errors reported within a successful (2xx) response
-          const errMsg = result.error || result.message || 'API returned an unspecified error.';
-          console.error(`[usePuntingFormApi] API returned success=false for ${endpoint}:`, errMsg, result);
+          // Handle errors reported within a successful (2xx) response from the proxy
+          const errMsg = result.error || result.message || 'Proxy API returned success=false.';
+          console.error(`[usePuntingFormApi] Proxy API returned success=false for ${endpoint}:`, errMsg, result);
           throw new Error(errMsg);
         }
 
       } catch (err) {
-        console.error(`[usePuntingFormApi] Error fetching from ${endpoint}:`, err);
+        console.error(`[usePuntingFormApi] Fetch error for ${endpoint}:`, err);
         setError(err instanceof Error ? err : new Error('An unknown error occurred during API fetch.'));
       } finally {
         setIsLoading(false);
@@ -103,9 +81,6 @@ export function usePuntingFormApi(endpoint, params = {}, skip = false) {
       setData(null);
       setError(null);
     }
-
-    // No cleanup needed for fetch, but good practice for potential future effects
-    // return () => { /* cleanup */ };
 
   }, [endpoint, JSON.stringify(params), skip]); // Re-run if endpoint, params, or skip change
 
