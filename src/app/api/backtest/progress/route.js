@@ -1,4 +1,4 @@
-// API endpoint for sending progress updates during backtest processing
+// API endpoint for retrieving progress updates during backtest processing
 import { NextResponse } from 'next/server';
 
 // Global variable to store progress information
@@ -9,53 +9,39 @@ let progressData = {
   sessionId: null
 };
 
-// Function to update progress
+// Function to update progress (used by the main backtest API)
 export function updateProgress(progress, stage, sessionId) {
-  progressData = {
-    progress,
-    stage,
-    sessionId
-  };
+  // Only update if the sessionId matches or if the process is starting/ending
+  if (progressData.sessionId === null || sessionId === progressData.sessionId || progress === 0 || progress === 100) {
+    progressData = {
+      progress,
+      stage,
+      sessionId: (progress > 0 && progress < 100) ? sessionId : null // Clear sessionId when complete or reset
+    };
+    console.log(`Progress Updated: ${progress}% - ${stage} (Session: ${sessionId})`);
+  } else {
+    console.log(`Progress update ignored for session ${sessionId}, current session is ${progressData.sessionId}`);
+  }
 }
 
-// Server-Sent Events handler
+// GET handler to retrieve current progress
 export async function GET(request) {
-  // Set headers for SSE
-  const headers = {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  };
-
-  // Create a readable stream
-  const stream = new ReadableStream({
-    start(controller) {
-      // Send initial progress
-      const initialData = `data: ${JSON.stringify(progressData)}\n\n`;
-      controller.enqueue(new TextEncoder().encode(initialData));
-      
-      // Set up interval to send progress updates
-      const interval = setInterval(() => {
-        const data = `data: ${JSON.stringify(progressData)}\n\n`;
-        controller.enqueue(new TextEncoder().encode(data));
-        
-        // If progress is 100%, end the stream
-        if (progressData.progress >= 100) {
-          clearInterval(interval);
-          controller.close();
-        }
-      }, 1000); // Send updates every second
-      
-      // Clean up when the client disconnects
-      request.signal.addEventListener('abort', () => {
-        clearInterval(interval);
-        controller.close();
-      });
-    }
-  });
-  
-  return new Response(stream, { headers });
+  try {
+    // Return the current progress data
+    // Add a timestamp to help clients detect changes
+    const responseData = {
+      ...progressData,
+      timestamp: Date.now()
+    };
+    return NextResponse.json(responseData);
+  } catch (error) {
+    console.error('Error retrieving progress:', error);
+    return NextResponse.json(
+      { error: 'Failed to retrieve progress' },
+      { status: 500 }
+    );
+  }
 }
 
-// Export the progress data for use in other files
+// Export the progress data (optional, might not be needed externally anymore)
 export { progressData };

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button"
 import { FileUpload } from "@/components/ui/file-upload"
 import Link from "next/link"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // Added useRef
 
 interface BacktestResult {
   id: string;
@@ -53,44 +53,78 @@ export default function BacktestPage() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [processingStage, setProcessingStage] = useState<string>("");
-  
-  // Set up event source for progress updates
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null); // Ref for interval ID
+
+  // Set up polling for progress updates
   useEffect(() => {
     if (loading) {
-      const eventSource = new EventSource('/api/backtest/progress');
-      
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setProgress(data.progress);
-        setProcessingStage(data.stage);
-        
-        if (data.progress >= 100) {
-          eventSource.close();
+      // Clear any existing interval
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+
+      // Start polling
+      pollingIntervalRef.current = setInterval(async () => {
+        try {
+          const response = await fetch('/api/backtest/progress');
+          if (!response.ok) {
+            console.error('Failed to fetch progress');
+            return;
+          }
+          const data = await response.json();
+
+          // Only update if progress is moving forward or stage changes
+          if (data.progress > progress || data.stage !== processingStage) {
+             setProgress(data.progress);
+             setProcessingStage(data.stage);
+          }
+
+          // Stop polling if complete or an error occurred implicitly
+          if (data.progress >= 100) {
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+              pollingIntervalRef.current = null;
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching progress:', err);
+          // Optionally stop polling on error
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
         }
-      };
-      
-      eventSource.onerror = () => {
-        eventSource.close();
-      };
-      
-      return () => {
-        eventSource.close();
-      };
+      }, 1500); // Poll every 1.5 seconds
+
+    } else {
+      // Clear interval if loading is finished
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     }
-  }, [loading]);
-  
+
+    // Cleanup function to clear interval on component unmount or when loading changes
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [loading, progress, processingStage]); // Add dependencies
+
   const handleFileChange = (file: File | null) => {
     setSelectedFile(file);
     console.log("File selected:", file?.name);
   };
-  
+
   const handleTimePeriodsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (value >= 2 && value <= 10) {
       setTimePeriods(value);
     }
   };
-  
+
   const handleRunBacktest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -98,14 +132,12 @@ export default function BacktestPage() {
     setResult(null);
     setProgress(0);
     setProcessingStage("Initializing...");
-    
+
     try {
-      // Check if a file is selected
       if (!selectedFile) {
         throw new Error("Please select a file to upload");
       }
 
-      // Create a FormData object to send the file
       const formData = new FormData();
       formData.append('file', selectedFile);
       formData.append('model', model);
@@ -115,33 +147,66 @@ export default function BacktestPage() {
       formData.append('parallelProcessing', parallelProcessing);
       formData.append('cacheSettings', cacheSettings);
       formData.append('logLevel', logLevel);
-      
-      // Call the API with FormData
+
+      // Start the backtest process (no need to wait for polling here)
       const response = await fetch('/api/backtest', {
         method: 'POST',
         body: formData
       });
-      
+
       // Handle the response
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to run backtest');
+        let errorMessage = `Request failed: ${response.status} ${response.statusText}`;
+        let errorDetails = '';
+        try {
+          // Check content type before parsing
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            errorDetails = errorData.message || JSON.stringify(errorData);
+          } else {
+            // If not JSON, read as text
+            errorDetails = await response.text();
+            console.error("Non-JSON error response text:", errorDetails); // Log the actual response text
+          }
+        } catch (parseError) {
+          // Handle cases where reading response fails
+          console.error("Error reading/parsing error response body:", parseError);
+          errorDetails = "(Could not read error response body)";
+        }
+        // Combine status with details if available
+        if (errorDetails && errorDetails.length < 200) { // Avoid overly long messages
+            errorMessage += ` - ${errorDetails}`;
+        } else if (errorDetails) {
+            errorMessage += ` - (See console for full error details)`;
+        }
+        throw new Error(errorMessage);
       }
-      
-      // Parse the result
+
+
       const resultData = await response.json();
       setResult(resultData);
+      // Ensure progress shows 100% on success
+      setProgress(100);
+      setProcessingStage("Complete");
+
     } catch (err) {
       console.error('Error running backtest:', err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      // Ensure progress shows error state or stops
+      setProcessingStage("Error");
+      setProgress(0); // Or keep last known progress? Resetting might be clearer.
     } finally {
       setLoading(false);
-      setProgress(100);
-      setProcessingStage("Complete");
+      // Clear interval explicitly when process finishes or errors out
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
     }
   };
 
-  // Progress bar component
+  // Progress bar component (remains the same)
   const ProgressBar = ({ progress, stage }: { progress: number, stage: string }) => {
     return (
       <div className="mt-4">
@@ -150,8 +215,8 @@ export default function BacktestPage() {
           <span className="text-sm font-medium">{progress}%</span>
         </div>
         <div className="w-full bg-gray-700 rounded-full h-2.5">
-          <div 
-            className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+          <div
+            className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
             style={{ width: `${progress}%` }}
           ></div>
         </div>
@@ -235,9 +300,9 @@ export default function BacktestPage() {
             >
               {loading ? 'Running Backtest...' : 'Run Backtest'}
             </Button>
-            
+
             {loading && <ProgressBar progress={progress} stage={processingStage} />}
-            
+
             {error && (
               <div className="mt-4 p-3 bg-red-900/30 border border-red-500/30 rounded-md text-red-300">
                 <p className="text-sm">{error}</p>
@@ -322,7 +387,7 @@ export default function BacktestPage() {
               </select>
               <p className="mt-1 text-xs opacity-70">Select where computations will be performed</p>
             </div>
-            
+
             <div>
               <label className="block mb-2 text-sm font-medium">Parallel Processing</label>
               <select
@@ -339,7 +404,7 @@ export default function BacktestPage() {
               <p className="mt-1 text-xs opacity-70">Number of parallel threads to use for computation</p>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block mb-2 text-sm font-medium">Cache Settings</label>
@@ -355,7 +420,7 @@ export default function BacktestPage() {
               </select>
               <p className="mt-1 text-xs opacity-70">How to cache computation results</p>
             </div>
-            
+
             <div>
               <label className="block mb-2 text-sm font-medium">Log Level</label>
               <select
@@ -373,7 +438,7 @@ export default function BacktestPage() {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-6 flex justify-end">
           <Button className="bg-blue-600 hover:bg-blue-700">Save Backend Settings</Button>
         </div>
@@ -388,7 +453,7 @@ export default function BacktestPage() {
               Computation Time: {result.computationTime}s
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-white/5 p-4 rounded-lg">
               <div className="text-sm opacity-70 mb-1">Top-1 Accuracy</div>
@@ -409,7 +474,7 @@ export default function BacktestPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="mb-6">
             <h3 className="font-bold mb-3">Period Results</h3>
             <div className="overflow-x-auto">
@@ -441,7 +506,7 @@ export default function BacktestPage() {
               </table>
             </div>
           </div>
-          
+
           <div>
             <h3 className="font-bold mb-3">Race Predictions</h3>
             <div className="overflow-x-auto">
