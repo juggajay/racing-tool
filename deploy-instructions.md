@@ -1,68 +1,89 @@
-# Deployment Instructions
+# Deployment Instructions & Configuration
 
-It seems that the automatic deployment to Vercel is not working correctly. Here are some options to deploy your changes:
+## IMPORTANT: API Key Configuration (New)
 
-## Option 1: Test Locally
+The Punting Form API key is no longer managed through the application's Settings page. It **must** be configured as an **Environment Variable** in your Vercel project settings for the application to fetch live data.
 
-I've created a simple HTML file that demonstrates the progress bar functionality:
+**How to Set Environment Variable in Vercel:**
 
-1. Open `test-progress-bar.html` in your browser
-2. Click the "Start Backtest Simulation" button to see the progress bar in action
+1.  Go to your Vercel Project Dashboard: [https://vercel.com/juggajays-projects/horses](https://vercel.com/juggajays-projects/horses) (Replace 'horses' if your project name is different).
+2.  Click on the "Settings" tab.
+3.  In the left sidebar, click on "Environment Variables".
+4.  Add a new variable:
+    *   **Name:** `PUNTING_FORM_API_KEY`
+    *   **Value:** Paste your actual Punting Form API key here.
+    *   **Environment(s):** Select "Production", "Preview", and "Development".
+5.  Click "Save".
 
-This will give you an idea of how the progress bar will look and function once deployed.
+Vercel will trigger a new deployment automatically after you save the environment variable. Wait for this deployment to complete before testing live data features.
 
-## Option 2: Manual Deployment to Vercel
+---
 
-To deploy your changes to Vercel:
+## Deployment Options
 
-1. Go to the [Vercel Dashboard](https://vercel.com/juggajays-projects/racing-tool)
-2. Click on "Deployments" tab
-3. Click "Deploy" button
-4. Choose "Deploy from GitHub"
-5. Select your repository and branch
-6. Click "Deploy"
+If automatic deployments from GitHub pushes aren't working or you need to redeploy manually:
 
-## Option 3: Use Vercel CLI
+### Option 1: Manual Redeploy from Vercel Dashboard
 
-If you have Node.js installed:
+1.  Go to the Deployments tab: [https://vercel.com/juggajays-projects/horses/deployments](https://vercel.com/juggajays-projects/horses/deployments)
+2.  Find the latest successful commit you want to deploy.
+3.  Click the three dots (`...`) on the right side of that deployment row.
+4.  Select "Redeploy" from the menu.
+5.  Confirm the redeployment.
+
+### Option 2: Use Vercel CLI
+
+If you have Node.js and npm installed:
 
 ```bash
-# Install Vercel CLI
+# Install Vercel CLI (if not already installed)
 npm install -g vercel
 
-# Login to Vercel
+# Login to Vercel (if not already logged in)
 vercel login
 
-# Deploy the project
+# Link project (if not already linked, run in project directory)
+# vercel link
+
+# Deploy to Production
 vercel --prod
 ```
 
-## Changes Made
+---
 
-Here's a summary of the changes I made to add the progress bar:
+## Local Testing
 
-1. **Frontend (src/app/backtest/page.tsx)**:
-   - Added state variables for progress and processing stage
-   - Added a progress bar component
-   - Set up an EventSource to receive real-time progress updates
+### Option 1: Test Progress Bar UI (No API)
 
-2. **Backend**:
-   - Created a new API endpoint (src/app/api/backtest/progress/route.js) for Server-Sent Events
-   - Updated the backtest API to send progress updates at various stages
+1.  Open `test-progress-bar.html` or `backtest-demo.html` in your browser.
+2.  Click the simulation button to see the UI elements.
 
-These changes will provide a visual indication of the backtesting progress, making the user experience better.
+### Option 2: Run Full Application Locally
 
-## Testing Without Deployment
+1.  **Set Environment Variable:** You need to make the API key available locally. Create a file named `.env.local` in the project root directory (this file is ignored by Git). Add the following line to it, replacing `YOUR_KEY_HERE` with your actual key:
+    ```
+    PUNTING_FORM_API_KEY=YOUR_KEY_HERE
+    ```
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
+3.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
+4.  **Access:** Open http://localhost:3000 in your browser. Live data features should now work locally using the key from `.env.local`.
 
-If you want to test the changes without deploying to Vercel:
+---
 
-1. Install Node.js if you don't have it already
-2. Run the following commands in the project directory:
-   ```bash
-   npm install
-   npm run dev
-   ```
-3. Open http://localhost:3000/backtest in your browser
-4. Upload a file and click "Run Backtest"
+## Recent Changes Summary (For Context)
 
-This will run the application locally and you can test the progress bar functionality.
+*   Moved API key management from browser storage to server-side Environment Variables (`PUNTING_FORM_API_KEY`).
+*   Removed API key input from the Settings page UI.
+*   Updated the backend proxy (`/api/punting-form`) to read the key from `process.env.PUNTING_FORM_API_KEY`.
+*   Created a dedicated "Live Racing" page (`/live-racing`) with a date picker.
+*   Moved the "Manual Backtesting" functionality into the Settings page (`/settings`).
+*   Removed "Backtest" and "API Test" links from navigation.
+*   Added more logging to API routes for debugging.
+*   Fixed deployment issues related to progress bar implementation (switched from SSE to polling).
+*   Cleaned up `.gitignore` and removed large temporary files from Git history.

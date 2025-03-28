@@ -41,23 +41,13 @@ interface BacktestResult {
 // --- End Backtest Interfaces ---
 
 export default function SettingsPage() {
-  // --- API Key State ---
-  const [apiKey, setApiKey] = useState('');
-  const [savedApiKey, setSavedApiKey] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [saveStatusMessage, setSaveStatusMessage] = useState('');
-  const [isTesting, setIsTesting] = useState(false);
-  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [testStatusMessage, setTestStatusMessage] = useState('');
-  // --- End API Key State ---
+  // --- Removed API Key State ---
 
   // --- Backtest State (Copied) ---
   const [backtestSelectedFile, setBacktestSelectedFile] = useState<File | null>(null);
   const [backtestTimePeriods, setBacktestTimePeriods] = useState<number>(5);
   const [backtestModel, setBacktestModel] = useState<string>("ensemble");
   const [backtestBettingStrategy, setBacktestBettingStrategy] = useState<string>("value");
-  // Note: Backend settings might be global or separate, keeping them here for now
   const [backtestComputationEngine, setBacktestComputationEngine] = useState<string>("local");
   const [backtestParallelProcessing, setBacktestParallelProcessing] = useState<string>("2");
   const [backtestCacheSettings, setBacktestCacheSettings] = useState<string>("memory");
@@ -70,24 +60,7 @@ export default function SettingsPage() {
   const backtestPollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   // --- End Backtest State ---
 
-
-  // Load saved API key on component mount
-  useEffect(() => {
-    const loadSavedApiKey = () => {
-      try {
-        if (typeof window !== 'undefined') {
-          const savedKey = localStorage.getItem('puntingFormApiKey');
-          if (savedKey) {
-            setSavedApiKey(savedKey);
-            setApiKey(savedKey);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading API key from localStorage:', error);
-      }
-    };
-    loadSavedApiKey();
-  }, []);
+  // --- Removed API Key useEffect and handlers ---
 
   // --- Backtest Polling Effect (Copied & Adapted) ---
   useEffect(() => {
@@ -122,48 +95,6 @@ export default function SettingsPage() {
     };
   }, [backtestLoading, backtestProgress, backtestProcessingStage]);
   // --- End Backtest Polling Effect ---
-
-  // --- API Key Functions (handleTestApiKey, handleSaveApiKey) ---
-  const handleTestApiKey = async () => {
-     setIsTesting(true); setTestStatus('idle'); setTestStatusMessage('Testing...');
-     try {
-       if (!apiKey.trim()) throw new Error('API key cannot be empty');
-       const testResponse = await fetch(`/api/punting-form?endpoint=form/comment&api_key=${encodeURIComponent(apiKey)}`);
-       const testData = await testResponse.json();
-       if (!testResponse.ok || testData.error || (testData.data && typeof testData.data === 'string' && testData.data.includes('Authentication Failed'))) {
-         let errMsg = 'Test failed.';
-         if (testData.error) errMsg = testData.error; else if (testData.details) errMsg = testData.details; else if (testData.message) errMsg = testData.message; else if (testData.data && typeof testData.data === 'string') errMsg = testData.data.substring(0, 100);
-         throw new Error(errMsg);
-       }
-       if (testData.success && Array.isArray(testData.data)) {
-          setTestStatus('success'); setTestStatusMessage(`Connection successful! Received ${testData.data.length} comment records.`);
-       } else {
-          console.warn("API test successful but data format might be unexpected:", testData.data);
-          setTestStatus('success'); setTestStatusMessage(`Connection successful, but response format was unexpected.`);
-       }
-     } catch (error) {
-       console.error('Error testing API key:', error); setTestStatus('error'); setTestStatusMessage(error instanceof Error ? error.message : 'An unknown error occurred during testing.');
-     } finally { setIsTesting(false); }
-  };
-  const handleSaveApiKey = async () => {
-    setIsSaving(true); setSaveStatus('idle'); setSaveStatusMessage(''); setTestStatus('idle'); setTestStatusMessage('');
-    try {
-      if (!apiKey.trim()) throw new Error('API key cannot be empty');
-      const testResponse = await fetch(`/api/punting-form?endpoint=form/comment&api_key=${encodeURIComponent(apiKey)}`);
-      const testData = await testResponse.json();
-      if (!testResponse.ok || testData.error || (testData.data && typeof testData.data === 'string' && testData.data.includes('Authentication Failed'))) {
-         let errMsg = 'Invalid API key or failed to connect.';
-         if (testData.error) errMsg = testData.error; else if (testData.details) errMsg = testData.details; else if (testData.message) errMsg = testData.message; else if (testData.data && typeof testData.data === 'string') errMsg = testData.data.substring(0, 100);
-         throw new Error(errMsg);
-      }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('puntingFormApiKey', apiKey); setSavedApiKey(apiKey); setSaveStatus('success'); setSaveStatusMessage('API key saved and verified successfully');
-      } else { throw new Error("localStorage is not available."); }
-    } catch (error) {
-      console.error('Error saving API key:', error); setSaveStatus('error'); setSaveStatusMessage(error instanceof Error ? error.message : 'An error occurred while saving the API key');
-    } finally { setIsSaving(false); }
-  };
-  // --- End API Key Functions ---
 
   // --- Backtest Helper Functions (Copied & Adapted) ---
   const handleBacktestFileChange = (file: File | null) => {
@@ -227,38 +158,22 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* API Settings Card */}
+      {/* API Settings Info Card (Key input removed) */}
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <h2 className="text-xl font-bold mb-4">API Settings</h2>
         <div className="mb-6">
           <h3 className="text-lg font-medium mb-2">Punting Form API</h3>
           <p className="text-sm opacity-70 mb-4">
-            Enter your Punting Form API key to access racing data. You can find your API key in your
-            <a href="https://www.puntingform.com.au/member/login" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300"> Punting Form account</a>.
-            The key is saved only in your browser's local storage.
+            The Punting Form API key is configured via server-side environment variables (`PUNTING_FORM_API_KEY`) in your Vercel project settings.
+            It is used by the backend to fetch live racing data.
           </p>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="apiKey" className="block text-sm font-medium mb-1">API Key</label>
-              <input id="apiKey" type="password" value={apiKey} onChange={(e) => { setApiKey(e.target.value); setSaveStatus('idle'); setSaveStatusMessage(''); setTestStatus('idle'); setTestStatusMessage(''); }} className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your Punting Form API key" />
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <Button onClick={handleSaveApiKey} disabled={isSaving || isTesting || apiKey === savedApiKey || !apiKey.trim()} className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50">{isSaving ? 'Verifying & Saving...' : 'Save API Key'}</Button>
-              <Button variant="outline" onClick={handleTestApiKey} disabled={isSaving || isTesting || !apiKey.trim()} className="disabled:opacity-50">{isTesting ? 'Testing...' : 'Test Connection'}</Button>
-              <div className="flex-grow min-w-[200px]">
-                 {saveStatus === 'success' && <span className="text-green-500 text-sm">{saveStatusMessage}</span>}
-                 {saveStatus === 'error' && <span className="text-red-500 text-sm">{saveStatusMessage}</span>}
-                 {testStatus === 'success' && saveStatus === 'idle' && <span className="text-green-500 text-sm">{testStatusMessage}</span>}
-                 {testStatus === 'error' && saveStatus === 'idle' && <span className="text-red-500 text-sm">{testStatusMessage}</span>}
-                 {testStatus === 'idle' && isTesting && <span className="text-gray-400 text-sm">{testStatusMessage}</span>}
-               </div>
-            </div>
-          </div>
+           <p className="text-sm opacity-70">
+             Refer to the Vercel documentation for instructions on setting environment variables.
+           </p>
         </div>
-        {/* API Usage Info */}
       </div>
 
-      {/* Manual Backtesting Card (Moved Here) */}
+      {/* Manual Backtesting Card */}
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
          <h2 className="text-xl font-bold mb-4">Manual Backtesting</h2>
          <p className="text-sm opacity-70 mb-4">
@@ -300,14 +215,12 @@ export default function SettingsPage() {
          {backtestResult && (
            <div className="mt-6 border-t border-white/10 pt-6">
              <h3 className="text-lg font-bold mb-4">Backtest Results</h3>
-             {/* Simplified results display for settings page */}
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="bg-white/5 p-4 rounded-lg"><div className="text-sm opacity-70 mb-1">Top-1 Acc</div><div className="text-xl font-bold">{backtestResult.summary.top1Accuracy}</div></div>
                 <div className="bg-white/5 p-4 rounded-lg"><div className="text-sm opacity-70 mb-1">Top-3 Acc</div><div className="text-xl font-bold">{backtestResult.summary.top3Accuracy}</div></div>
                 <div className="bg-white/5 p-4 rounded-lg"><div className="text-sm opacity-70 mb-1">Top-4 Acc</div><div className="text-xl font-bold">{backtestResult.summary.top4Accuracy}</div></div>
                 <div className="bg-white/5 p-4 rounded-lg"><div className="text-sm opacity-70 mb-1">ROI</div><div className={`text-xl font-bold ${parseFloat(backtestResult.summary.roi) > 0 ? 'text-green-500' : 'text-red-500'}`}>{backtestResult.summary.roi}</div></div>
              </div>
-             {/* Optionally add button to view full results if needed */}
            </div>
          )}
       </div>
