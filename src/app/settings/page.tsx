@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function SettingsPage() {
-  const [apiKey, setApiKey] = useState('5b0df8bf-da9a-4d1e-995d-9b7a002aa836');
+  const [apiKey, setApiKey] = useState(''); // Initialize empty, load from storage
   const [savedApiKey, setSavedApiKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -15,10 +15,16 @@ export default function SettingsPage() {
   useEffect(() => {
     const loadSavedApiKey = () => {
       try {
-        const savedKey = localStorage.getItem('puntingFormApiKey');
-        if (savedKey) {
-          setSavedApiKey(savedKey);
-          setApiKey(savedKey);
+        // Ensure localStorage is available (client-side only)
+        if (typeof window !== 'undefined') {
+          const savedKey = localStorage.getItem('puntingFormApiKey');
+          if (savedKey) {
+            setSavedApiKey(savedKey);
+            setApiKey(savedKey); // Pre-fill input with saved key
+          } else {
+             // If no saved key, maybe use the default one as placeholder?
+             // setApiKey('5b0df8bf-da9a-4d1e-995d-9b7a002aa836'); // Example placeholder
+          }
         }
       } catch (error) {
         console.error('Error loading API key from localStorage:', error);
@@ -41,25 +47,41 @@ export default function SettingsPage() {
         return;
       }
 
-      // Test the API key with a simple request
-      const response = await fetch(`/api/punting-form?api_key=${encodeURIComponent(apiKey)}&endpoint=races`);
-      const data = await response.json();
+      // Test the API key with a simple, valid request to the proxy
+      // Using 'form/comment' endpoint which requires only date (defaults to today)
+      // Pass the key being tested as a query parameter
+      const testResponse = await fetch(`/api/punting-form?endpoint=form/comment&api_key=${encodeURIComponent(apiKey)}`);
+      const testData = await testResponse.json();
 
-      if (!response.ok || data.error) {
+      // Check if the proxy returned success AND the data from PuntingForm doesn't indicate an auth error
+      // (PuntingForm might return 200 OK but with an error message in the body for invalid keys)
+      if (!testResponse.ok || testData.error || (testData.data && typeof testData.data === 'string' && testData.data.includes('Authentication Failed'))) {
+         let errMsg = 'Invalid API key or failed to connect.';
+         if (testData.error) {
+             errMsg = testData.error;
+         } else if (testData.details) {
+             errMsg = testData.details;
+         } else if (testData.data && typeof testData.data === 'string') {
+             errMsg = testData.data.substring(0, 100); // Show beginning of error string
+         }
         setSaveStatus('error');
-        setStatusMessage(data.error || 'Invalid API key');
+        setStatusMessage(errMsg);
         return;
       }
 
-      // Save API key to localStorage
-      localStorage.setItem('puntingFormApiKey', apiKey);
-      setSavedApiKey(apiKey);
-      setSaveStatus('success');
-      setStatusMessage('API key saved successfully');
+      // Save API key to localStorage if the test passes
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('puntingFormApiKey', apiKey);
+        setSavedApiKey(apiKey);
+        setSaveStatus('success');
+        setStatusMessage('API key saved and verified successfully');
+      } else {
+         throw new Error("localStorage is not available.");
+      }
     } catch (error) {
       console.error('Error saving API key:', error);
       setSaveStatus('error');
-      setStatusMessage('An error occurred while saving the API key');
+      setStatusMessage(error instanceof Error ? error.message : 'An error occurred while saving the API key');
     } finally {
       setIsSaving(false);
     }
@@ -78,51 +100,52 @@ export default function SettingsPage() {
 
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <h2 className="text-xl font-bold mb-4">API Settings</h2>
-        
+
         <div className="mb-6">
           <h3 className="text-lg font-medium mb-2">Punting Form API</h3>
           <p className="text-sm opacity-70 mb-4">
-            Enter your Punting Form API key to access racing data. You can find your API key in your 
+            Enter your Punting Form API key to access racing data. You can find your API key in your
             <a href="https://www.puntingform.com.au/member/login" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300"> Punting Form account</a>.
+            The key is saved only in your browser's local storage.
           </p>
-          
+
           <div className="space-y-4">
             <div>
               <label htmlFor="apiKey" className="block text-sm font-medium mb-1">API Key</label>
               <input
                 id="apiKey"
-                type="password"
+                type="password" // Keep as password for masking
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => { setApiKey(e.target.value); setSaveStatus('idle'); setStatusMessage(''); }} // Reset status on change
                 className="w-full px-4 py-2 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your Punting Form API key"
               />
             </div>
-            
+
             <div className="flex items-center gap-4">
-              <Button 
-                onClick={handleSaveApiKey} 
-                disabled={isSaving || apiKey === savedApiKey}
-                className="bg-blue-600 hover:bg-blue-700"
+              <Button
+                onClick={handleSaveApiKey}
+                disabled={isSaving || apiKey === savedApiKey} // Disable if saving or key hasn't changed
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {isSaving ? 'Saving...' : 'Save API Key'}
+                {isSaving ? 'Verifying & Saving...' : 'Save API Key'}
               </Button>
-              
+
               {saveStatus === 'success' && (
                 <span className="text-green-500 text-sm">{statusMessage}</span>
               )}
-              
+
               {saveStatus === 'error' && (
                 <span className="text-red-500 text-sm">{statusMessage}</span>
               )}
             </div>
           </div>
         </div>
-        
+
         <div className="border-t border-white/10 pt-4 mt-6">
           <h3 className="text-lg font-medium mb-2">API Usage</h3>
           <p className="text-sm opacity-70 mb-2">
-            Your API key is stored securely in your browser&apos;s local storage and is only sent to the Punting Form API when making requests.
+            Your API key is stored securely in your browser&apos;s local storage and is only sent to the Punting Form API when making requests via this application's backend proxy.
           </p>
           <p className="text-sm opacity-70">
             The API key is used to fetch racing data for the following features:
@@ -135,10 +158,11 @@ export default function SettingsPage() {
           </ul>
         </div>
       </div>
-      
+
+      {/* Other settings remain unchanged */}
       <div className="bg-white/10 p-4 md:p-6 rounded-lg shadow-lg mb-6">
         <h2 className="text-xl font-bold mb-4">Application Settings</h2>
-        
+
         <div className="space-y-4">
           <div>
             <label htmlFor="theme" className="block text-sm font-medium mb-1">Theme</label>
@@ -152,7 +176,7 @@ export default function SettingsPage() {
               <option value="system">System Default</option>
             </select>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <input
               id="notifications"
@@ -162,7 +186,7 @@ export default function SettingsPage() {
             />
             <label htmlFor="notifications" className="text-sm font-medium">Enable Notifications</label>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <input
               id="analytics"
@@ -174,7 +198,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="text-center">
         <p className="text-xs md:text-sm opacity-70">
           Australian Horse Racing Prediction System © 2025
