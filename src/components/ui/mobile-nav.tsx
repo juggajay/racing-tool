@@ -9,10 +9,6 @@ import { usePathname } from 'next/navigation';
 const LiveIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343m11.314 0a8 8 0 010 11.314m-11.314 0a8 8 0 0111.314 0M12 18.75a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-     {/* Optional animation for pulsing effect - might require CSS */}
-     {/* <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
-     <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1" strokeOpacity="0.5" />
-     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" /> */}
   </svg>
 );
 
@@ -54,7 +50,7 @@ export function MobileNav() {
               <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">
                 Dashboard
               </Link>
-              <Link href="/live-racing" className="hover:text-indigo-400 transition-colors"> {/* Added Live Racing */}
+              <Link href="/live-racing" className="hover:text-indigo-400 transition-colors">
                 Live Racing
               </Link>
               <Link href="/races" className="hover:text-indigo-400 transition-colors">
@@ -63,16 +59,13 @@ export function MobileNav() {
               <Link href="/predict" className="hover:text-indigo-400 transition-colors">
                 Predict
               </Link>
-              <Link href="/backtest" className="hover:text-indigo-400 transition-colors">
-                Backtest
-              </Link>
+              {/* Removed Backtest Link */}
               <Link href="/settings" className="hover:text-indigo-400 transition-colors">
                 Settings
               </Link>
               <Link href="/community" className="hover:text-indigo-400 transition-colors">
                 Community
               </Link>
-              {/* Removed API Test Link */}
             </nav>
             <div className="flex items-center space-x-4">
               {/* Mobile Menu Button */}
@@ -131,7 +124,7 @@ export function MobileNav() {
                     Dashboard
                   </Link>
                    <Link
-                    href="/live-racing" // Added Live Racing
+                    href="/live-racing"
                     className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
                     onClick={toggleMenu}
                   >
@@ -151,13 +144,7 @@ export function MobileNav() {
                   >
                     Predict
                   </Link>
-                  <Link
-                    href="/backtest"
-                    className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
-                    onClick={toggleMenu}
-                  >
-                    Backtest
-                  </Link>
+                  {/* Removed Backtest Link */}
                   <Link
                     href="/settings"
                     className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
@@ -172,7 +159,6 @@ export function MobileNav() {
                   >
                     Community
                   </Link>
-                  {/* Removed API Test Link */}
                   <div className="pt-2 border-t border-indigo-900">
                     <AuthStatus />
                   </div>
@@ -185,7 +171,7 @@ export function MobileNav() {
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-950 border-t border-indigo-900 shadow-lg z-50 pb-safe">
-        <div className="grid grid-cols-6 h-14"> {/* Adjusted to 6 columns */}
+        <div className="grid grid-cols-5 h-14"> {/* Adjusted back to 5 columns */}
           <Link
             href="/"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/' ? 'text-indigo-400' : 'text-gray-400'}`}
@@ -197,10 +183,10 @@ export function MobileNav() {
           </Link>
 
           <Link
-            href="/live-racing" // Added Live Racing
+            href="/live-racing"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/live-racing' ? 'text-indigo-400' : 'text-gray-400'}`}
           >
-             <LiveIcon /> {/* Use the new icon */}
+             <LiveIcon />
             <span>Live</span>
           </Link>
 
@@ -224,18 +210,10 @@ export function MobileNav() {
             <span>Predict</span>
           </Link>
 
-          <Link
-            href="/backtest"
-            className={`flex flex-col items-center justify-center text-xs ${pathname === '/backtest' ? 'text-indigo-400' : 'text-gray-400'}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Backtest</span>
-          </Link>
+          {/* Removed Backtest Link */}
 
           <Link
-            href="/settings" // Moved Settings to bottom bar
+            href="/settings"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/settings' ? 'text-indigo-400' : 'text-gray-400'}`}
           >
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
