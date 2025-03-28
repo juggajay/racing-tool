@@ -268,6 +268,70 @@ GET /api/weather?location=Flemington%20Racecourse&type=track
 GET /api/weather?location=Flemington%20Racecourse&date=2025-03-28
 ```
 
+## CSV Data API
+
+The CSV Data API allows you to upload, view, and query CSV racing data. It provides endpoints for managing CSV files and querying the data within them.
+
+### Base URL
+
+```
+/api/csv-data
+```
+
+### GET Endpoint
+
+#### Parameters
+
+- `filename` (optional): The name of the CSV file to retrieve. If not provided, the API will return a list of available CSV files.
+- `marketId` (optional): Filter data by market ID.
+- `eventId` (optional): Filter data by event ID.
+- `runnerId` (optional): Filter data by runner ID.
+
+#### Examples
+
+1. List all available CSV files:
+```
+GET /api/csv-data
+```
+
+2. Get data from a specific CSV file:
+```
+GET /api/csv-data?filename=racing-data.csv
+```
+
+3. Filter data by market ID:
+```
+GET /api/csv-data?filename=racing-data.csv&marketId=1.128908590
+```
+
+4. Filter data by multiple parameters:
+```
+GET /api/csv-data?filename=racing-data.csv&marketId=1.128908590&runnerId=12286075
+```
+
+### POST Endpoint
+
+The POST endpoint allows you to upload CSV data in two ways:
+
+1. As a multipart/form-data request with a file upload:
+```
+POST /api/csv-data
+Content-Type: multipart/form-data
+
+file: [Your CSV file]
+```
+
+2. As a JSON request with CSV data:
+```
+POST /api/csv-data
+Content-Type: application/json
+
+{
+  "csvData": "timestamp,human_time,market_id,...",
+  "filename": "racing-data.csv"
+}
+```
+
 ## Test API
 
 The Test API provides a simple way to test the Racing Data API.
@@ -313,6 +377,7 @@ The Racing Tool includes HTML test pages that allow you to test the APIs directl
 - `/api-direct-test.html` - Test direct API calls to the Punting Form API
 - `/racing-test.html` - Test the Racing Data API
 - `/unified-api-test.html` - Test the Unified Racing API
+- `/csv-data-test.html` - Test the CSV Data API
 - `/api-docs.html` - View the complete API documentation
 
 ## API Key
