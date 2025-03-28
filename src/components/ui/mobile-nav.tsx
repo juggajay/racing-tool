@@ -5,10 +5,22 @@ import { useState, useEffect } from 'react';
 import { AuthStatus } from '@/components/ui/auth-status';
 import { usePathname } from 'next/navigation';
 
+// Simple SVG icon for Live Racing (e.g., a pulsing dot or signal)
+const LiveIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343m11.314 0a8 8 0 010 11.314m-11.314 0a8 8 0 0111.314 0M12 18.75a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+     {/* Optional animation for pulsing effect - might require CSS */}
+     {/* <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.5" />
+     <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1" strokeOpacity="0.5" />
+     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" /> */}
+  </svg>
+);
+
+
 export function MobileNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  
+
   // Close mobile menu when window is resized to desktop size
   useEffect(() => {
     const handleResize = () => {
@@ -16,7 +28,7 @@ export function MobileNav() {
         setMobileMenuOpen(false);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [mobileMenuOpen]);
@@ -34,12 +46,16 @@ export function MobileNav() {
             <Link href="/" className="text-lg md:text-xl font-bold">
               Horse Racing Predictor
             </Link>
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-6">
               <Link href="/" className="hover:text-indigo-400 transition-colors">
                 Home
               </Link>
               <Link href="/dashboard" className="hover:text-indigo-400 transition-colors">
                 Dashboard
+              </Link>
+              <Link href="/live-racing" className="hover:text-indigo-400 transition-colors"> {/* Added Live Racing */}
+                Live Racing
               </Link>
               <Link href="/races" className="hover:text-indigo-400 transition-colors">
                 Races
@@ -56,11 +72,10 @@ export function MobileNav() {
               <Link href="/community" className="hover:text-indigo-400 transition-colors">
                 Community
               </Link>
-              <Link href="/api-test" className="hover:text-indigo-400 transition-colors">
-                API Test
-              </Link>
+              {/* Removed API Test Link */}
             </nav>
             <div className="flex items-center space-x-4">
+              {/* Mobile Menu Button */}
               <div className="md:hidden">
                 <button
                   className="text-white p-2"
@@ -87,8 +102,8 @@ export function MobileNav() {
             </div>
           </div>
         </div>
-        
-        {/* Mobile Menu */}
+
+        {/* Mobile Slide-out Menu */}
         {mobileMenuOpen && (
           <>
             {/* Background overlay */}
@@ -96,7 +111,7 @@ export function MobileNav() {
               className="md:hidden fixed inset-0 bg-black/50 z-40"
               onClick={toggleMenu}
             ></div>
-            
+
             {/* Menu */}
             <div className="md:hidden fixed top-[53px] left-0 w-full bg-indigo-950 border-b border-indigo-900 shadow-lg z-50">
               <div className="container mx-auto px-4 py-4">
@@ -114,6 +129,13 @@ export function MobileNav() {
                     onClick={toggleMenu}
                   >
                     Dashboard
+                  </Link>
+                   <Link
+                    href="/live-racing" // Added Live Racing
+                    className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
+                    onClick={toggleMenu}
+                  >
+                    Live Racing
                   </Link>
                   <Link
                     href="/races"
@@ -150,13 +172,7 @@ export function MobileNav() {
                   >
                     Community
                   </Link>
-                  <Link
-                    href="/api-test"
-                    className="hover:text-indigo-400 transition-colors py-2 px-4 rounded-md hover:bg-indigo-900/50"
-                    onClick={toggleMenu}
-                  >
-                    API Test
-                  </Link>
+                  {/* Removed API Test Link */}
                   <div className="pt-2 border-t border-indigo-900">
                     <AuthStatus />
                   </div>
@@ -169,7 +185,7 @@ export function MobileNav() {
 
       {/* Mobile Bottom Navigation Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-950 border-t border-indigo-900 shadow-lg z-50 pb-safe">
-        <div className="grid grid-cols-6 h-14">
+        <div className="grid grid-cols-6 h-14"> {/* Adjusted to 6 columns */}
           <Link
             href="/"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/' ? 'text-indigo-400' : 'text-gray-400'}`}
@@ -179,17 +195,15 @@ export function MobileNav() {
             </svg>
             <span>Home</span>
           </Link>
-          
+
           <Link
-            href="/dashboard"
-            className={`flex flex-col items-center justify-center text-xs ${pathname === '/dashboard' ? 'text-indigo-400' : 'text-gray-400'}`}
+            href="/live-racing" // Added Live Racing
+            className={`flex flex-col items-center justify-center text-xs ${pathname === '/live-racing' ? 'text-indigo-400' : 'text-gray-400'}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span>Dashboard</span>
+             <LiveIcon /> {/* Use the new icon */}
+            <span>Live</span>
           </Link>
-          
+
           <Link
             href="/races"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/races' || pathname.startsWith('/races/') ? 'text-indigo-400' : 'text-gray-400'}`}
@@ -199,7 +213,7 @@ export function MobileNav() {
             </svg>
             <span>Races</span>
           </Link>
-          
+
           <Link
             href="/predict"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/predict' ? 'text-indigo-400' : 'text-gray-400'}`}
@@ -209,7 +223,7 @@ export function MobileNav() {
             </svg>
             <span>Predict</span>
           </Link>
-          
+
           <Link
             href="/backtest"
             className={`flex flex-col items-center justify-center text-xs ${pathname === '/backtest' ? 'text-indigo-400' : 'text-gray-400'}`}
@@ -219,15 +233,16 @@ export function MobileNav() {
             </svg>
             <span>Backtest</span>
           </Link>
-          
+
           <Link
-            href="/community"
-            className={`flex flex-col items-center justify-center text-xs ${pathname === '/community' || pathname.startsWith('/community/') ? 'text-indigo-400' : 'text-gray-400'}`}
+            href="/settings" // Moved Settings to bottom bar
+            className={`flex flex-col items-center justify-center text-xs ${pathname === '/settings' ? 'text-indigo-400' : 'text-gray-400'}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <span>Community</span>
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+             </svg>
+            <span>Settings</span>
           </Link>
         </div>
       </div>

@@ -1,58 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react'; // Added useState, useEffect
+import React from 'react'; // Removed useState, useEffect
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { usePuntingFormApi } from '@/hooks/usePuntingFormApi'; // Import the hook
+// Removed import for usePuntingFormApi as it's no longer used here
 
-// Define interface for meeting data (based on Punting Form API structure)
-interface Meeting {
-  meetingId: number;
-  meetingName: string;
-  trackName: string;
-  location: string;
-  state: string;
-  meetingDate: string; // e.g., "2025-03-28T00:00:00"
-  raceCount: number;
-  // Add other relevant fields if needed
-}
-
-// Component to display today's meetings
-function TodaysMeetings() {
-  const { data, isLoading, error } = usePuntingFormApi('form/meetingslist'); // Fetch today's meetings
-
-  // Assuming the API returns data in the structure { meetings: Meeting[] }
-  const meetings: Meeting[] | null = data?.meetings;
-
-  if (isLoading) {
-    return <div className="text-center text-gray-400">Loading today's meetings...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center text-red-500">Error loading meetings: {error.message}</div>;
-  }
-
-  if (!meetings || meetings.length === 0) {
-    return <div className="text-center text-gray-400">No race meetings found for today.</div>;
-  }
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      {meetings.map((meeting) => (
-        <div key={meeting.meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200">
-          <h3 className="text-lg font-semibold text-white mb-1">{meeting.meetingName}</h3>
-          <p className="text-sm text-gray-400 mb-2">{meeting.trackName} - {meeting.location}, {meeting.state}</p>
-          <p className="text-sm text-gray-500 mb-3">{meeting.raceCount} Races</p>
-          {/* TODO: Link to a future meeting details page */}
-          <Link href={`/races/meeting/${meeting.meetingId}`}>
-             <Button variant="outline" size="sm" className="w-full">View Races</Button>
-          </Link>
-        </div>
-      ))}
-    </div>
-  );
-}
-
+// Removed Meeting interface and TodaysMeetings component
 
 export default function Home() {
   return (
@@ -90,7 +43,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Prediction Card Example (Simplified for brevity, original kept below) */}
+            {/* Prediction Card Example */}
              <div className="relative mt-8 lg:mt-0">
                <div className="w-full h-full bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl">
                  <div className="flex justify-between items-center mb-6">
@@ -111,22 +64,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Today's Meetings Section */}
-      <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-950">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10 md:mb-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 md:mb-4">Today's Race Meetings</h2>
-            <p className="text-base md:text-lg text-gray-400 max-w-3xl mx-auto">
-              Live data fetched from Punting Form API.
-            </p>
-          </div>
-          <TodaysMeetings /> {/* Render the meetings component */}
-        </div>
-      </section>
-
+      {/* Removed Today's Meetings Section */}
 
       {/* Features Section */}
-      <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-900"> {/* Changed background slightly */}
+      <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 bg-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 md:mb-4">Advanced Machine Learning Technology</h2>
@@ -139,6 +80,9 @@ export default function Home() {
              <div className="bg-gray-800 p-5 md:p-8 rounded-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300">
                <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-900 rounded-lg flex items-center justify-center mb-4 md:mb-6">
                  {/* Icon */}
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                 </svg>
                </div>
                <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">Ensemble Learning</h3>
                <p className="text-sm md:text-base text-gray-400">
@@ -148,6 +92,9 @@ export default function Home() {
              <div className="bg-gray-800 p-5 md:p-8 rounded-xl border border-gray-700 hover:border-purple-500 transition-all duration-300">
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-900 rounded-lg flex items-center justify-center mb-4 md:mb-6">
                   {/* Icon */}
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                   </svg>
                 </div>
                <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">Real-time Processing</h3>
                <p className="text-sm md:text-base text-gray-400">
@@ -157,6 +104,9 @@ export default function Home() {
              <div className="bg-gray-800 p-5 md:p-8 rounded-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300">
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-900 rounded-lg flex items-center justify-center mb-4 md:mb-6">
                  {/* Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
                 </div>
                <h3 className="text-lg md:text-xl font-bold text-white mb-2 md:mb-3">Adaptive Learning</h3>
                <p className="text-sm md:text-base text-gray-400">
@@ -168,7 +118,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-gray-950 to-gray-900"> {/* Changed background slightly */}
+      <section className="py-10 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-gray-950 to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             {/* Stats */}
@@ -205,7 +155,7 @@ export default function Home() {
                 Register Now
               </Button>
             </Link>
-            <Link href="/dashboard" className="w-full sm:w-auto"> {/* Changed link to /dashboard */}
+            <Link href="/dashboard" className="w-full sm:w-auto">
               <Button variant="outline" className="text-white border-white hover:bg-white/10 text-base md:text-lg px-5 py-3 md:px-8 md:py-6 w-full">
                 Explore Dashboard
               </Button>
