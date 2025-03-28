@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtesting with Progress Bar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .button {
+            background-color: #3a86ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #2a75e0;
+        }
+        .button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        .file-upload {
+            margin-bottom: 15px;
+        }
+        .file-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-upload-btn svg {
+            margin-right: 8px;
+        }
+        .file-name {
+            margin-left: 10px;
+            opacity: 0.7;
+        }
+        .progress-container {
+            margin-top: 15px;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #444;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3a86ff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .error-message {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .metric-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .green {
+            color: #4ade80;
+        }
+        .red {
+            color: #ff6b6b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Backtesting</h1>
+            <button class="button" style="width: auto;">Make Predictions</button>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Run Backtesting</h2>
+                <form id="backtestForm">
+                    <div class="form-group">
+                        <label>Prediction Model</label>
+                        <select id="model">
+                            <option value="ensemble">Ensemble (Recommended)</option>
+                            <option value="random_forest">Random Forest</option>
+                            <option value="gradient_boosting">Gradient Boosting</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Number of Time Periods</label>
+                        <input type="number" id="timePeriods" min="2" max="10" value="5">
+                        <div style="font-size: 12px; opacity: 0.7; margin-top: 5px;">Number of time periods to use for backtesting (2-10)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Betting Strategy</label>
+                        <select id="bettingStrategy">
+                            <option value="value">Value Betting</option>
+                            <option value="favorite">Favorite</option>
+                            <option value="probability">Highest Probability</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload Dataset (CSV, Excel, or JSON)</label>
+                        <div class="file-upload">
+                            <label class="file-upload-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Choose File
+                                <input type="file" id="fileUpload" style="display: none;">
+                            </label>
+                            <span class="file-name" id="fileName">No file selected</span>
+                        </div>
+                        <div style="font-size: 12px; opacity: 0.7;">Upload your historical race data for backtesting</div>
+                    </div>
+
+                    <button type="submit" id="runButton" class="button">Run Backtest</button>
+
+                    <div id="progressContainer" class="progress-container" style="display: none;">
+                        <div class="progress-info">
+                            <span id="progressStage">Initializing...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Backtesting Information</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3>What is Backtesting?</h3>
+                    <p>
+                        Backtesting is the process of testing a predictive model on historical data to evaluate
+                        its performance. It helps assess how well the model would have performed in the past,
+                        which can indicate its potential future performance.
+                    </p>
+                </div>
+
+                <div>
+                    <h3>Evaluation Metrics</h3>
+                    <ul style="padding-left: 20px;">
+                        <li style="margin-bottom: 5px;">
+                            <span style="font-weight: 500;">Top-1 Accuracy</span>: Percentage of races where the predicted winner finished first
+                        </li>
+                        <li style="margin-bottom: 5px;">
+                            <span style="font-weight: 500;">Top-3 Accuracy</span>: Percentage of races where the predicted winner finished in the top 3
+                        </li>
+                        <li style="margin-bottom: 5px;">
+                            <span style="font-weight: 500;">Top-4 Accuracy</span>: Percentage of races where the predicted winner finished in the top 4
+                        </li>
+                        <li style="margin-bottom: 5px;">
+                            <span style="font-weight: 500;">ROI</span>: Return on Investment from following the betting strategy
+                        </li>
+                        <li>
+                            <span style="font-weight: 500;">Probability Calibration</span>: How well predicted probabilities match actual outcomes
+                        </li>
+                    </ul>
+                </div>
+
+                <div style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 15px; border-radius: 4px; margin-top: 15px;">
+                    <h3 style="color: #60a5fa; margin-top: 0;">Note</h3>
+                    <p style="font-size: 14px; margin-bottom: 0;">
+                        Backtesting uses synthetic data for demonstration purposes. In a production environment,
+                        it would use your historical race data.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsSection" style="display: none;">
+            <div class="card results">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2>Backtest Results</h2>
+                    <div style="font-size: 14px; opacity: 0.7;">
+                        Computation Time: <span id="computationTime">3.5</span>s
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Top-1 Accuracy</div>
+                        <div class="metric-value" id="top1Accuracy">32.5%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Top-3 Accuracy</div>
+                        <div class="metric-value" id="top3Accuracy">58.7%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Top-4 Accuracy</div>
+                        <div class="metric-value" id="top4Accuracy">72.3%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">ROI</div>
+                        <div class="metric-value green" id="roi">+8.7%</div>
+                    </div>
+                </div>
+
+                <h3>Period Results</h3>
+                <div style="overflow-x: auto;">
+                    <table id="periodTable">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Date</th>
+                                <th>Top-1 Accuracy</th>
+                                <th>Top-3 Accuracy</th>
+                                <th>Top-4 Accuracy</th>
+                                <th>ROI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="periodTableBody">
+                            <!-- Period results will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 style="margin-top: 20px;">Race Predictions</h3>
+                <div style="overflow-x: auto;">
+                    <table id="raceTable">
+                        <thead>
+                            <tr>
+                                <th>Race</th>
+                                <th>Predicted Winner</th>
+                                <th>Predicted Odds</th>
+                                <th>Actual Winner</th>
+                                <th>Actual Odds</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="raceTableBody">
+                            <!-- Race predictions will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // File upload handling
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const fileName = e.target.files.length > 0 ? e.target.files[0].name : 'No file selected';
+            document.getElementById('fileName').textContent = fileName;
+        });
+
+        // Form submission
+        document.getElementById('backtestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const model = document.getElementById('model').value;
+            const timePeriods = parseInt(document.getElementById('timePeriods').value);
+            const bettingStrategy = document.getElementById('bettingStrategy').value;
+            const fileInput = document.getElementById('fileUpload');
+            
+            // Validate file selection
+            if (fileInput.files.length === 0) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = 'Please select a file to upload';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Hide error message if it was shown
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Show progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            progressContainer.style.display = 'block';
+            
+            // Disable the run button
+            document.getElementById('runButton').disabled = true;
+            
+            // Hide results if they were shown
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // Simulate progress updates
+            simulateBacktest(timePeriods);
+        });
+
+        function simulateBacktest(timePeriods) {
+            const progressFill = document.getElementById('progressFill');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressStage = document.getElementById('progressStage');
+            
+            // Define stages with progress percentages
+            const stages = [
+                { progress: 0, stage: "Initializing..." },
+                { progress: 5, stage: "Uploading file..." },
+                { progress: 10, stage: "Reading file..." },
+                { progress: 20, stage: "Parsing data..." },
+                { progress: 30, stage: "Preparing model..." },
+                { progress: 50, stage: "Running backtest..." }
+            ];
+            
+            // Add period processing stages
+            for (let i = 1; i <= timePeriods; i++) {
+                const periodProgress = 50 + (i * (30 / timePeriods));
+                stages.push({
+                    progress: periodProgress,
+                    stage: `Processing period ${i} of ${timePeriods}...`
+                });
+            }
+            
+            // Add final stages
+            stages.push({ progress: 90, stage: "Generating race predictions..." });
+            stages.push({ progress: 95, stage: "Finalizing results..." });
+            stages.push({ progress: 100, stage: "Complete" });
+            
+            let currentStage = 0;
+            
+            function updateProgress() {
+                if (currentStage < stages.length) {
+                    const stage = stages[currentStage];
+                    
+                    // Update progress bar
+                    progressFill.style.width = stage.progress + '%';
+                    progressPercent.textContent = stage.progress + '%';
+                    progressStage.textContent = stage.stage;
+                    
+                    currentStage++;
+                    
+                    // Schedule next update
+                    const delay = Math.random() * 500 + 300; // Random delay between 300-800ms
+                    setTimeout(updateProgress, delay);
+                } else {
+                    // Enable the run button
+                    document.getElementById('runButton').disabled = false;
+                    
+                    // Show results
+                    generateResults(timePeriods);
+                    document.getElementById('resultsSection').style.display = 'block';
+                }
+            }
+            
+            // Start progress updates
+            updateProgress();
+        }
+
+        function generateResults(timePeriods) {
+            // Generate random results
+            const top1Accuracy = (Math.random() * 10 + 25).toFixed(1);
+            const top3Accuracy = (Math.random() * 10 + 55).toFixed(1);
+            const top4Accuracy = (Math.random() * 10 + 70).toFixed(1);
+            const roi = (Math.random() * 5 + 5).toFixed(1);
+            const computationTime = (Math.random() * 3 + 2).toFixed(1);
+            
+            // Update summary metrics
+            document.getElementById('top1Accuracy').textContent = top1Accuracy + '%';
+            document.getElementById('top3Accuracy').textContent = top3Accuracy + '%';
+            document.getElementById('top4Accuracy').textContent = top4Accuracy + '%';
+            document.getElementById('roi').textContent = '+' + roi + '%';
+            document.getElementById('computationTime').textContent = computationTime;
+            
+            // Generate period results
+            const periodTableBody = document.getElementById('periodTableBody');
+            periodTableBody.innerHTML = '';
+            
+            const today = new Date();
+            for (let i = 0; i < timePeriods; i++) {
+                const periodDate = new Date(today);
+                periodDate.setDate(periodDate.getDate() - i * 7);
+                
+                const periodTop1 = (parseFloat(top1Accuracy) + (Math.random() * 4 - 2)).toFixed(1);
+                const periodTop3 = (parseFloat(top3Accuracy) + (Math.random() * 4 - 2)).toFixed(1);
+                const periodTop4 = (parseFloat(top4Accuracy) + (Math.random() * 4 - 2)).toFixed(1);
+                const periodRoi = (parseFloat(roi) + (Math.random() * 2 - 1)).toFixed(1);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>${formatDate(periodDate)}</td>
+                    <td>${periodTop1}%</td>
+                    <td>${periodTop3}%</td>
+                    <td>${periodTop4}%</td>
+                    <td class="${parseFloat(periodRoi) > 0 ? 'green' : 'red'}">${parseFloat(periodRoi) > 0 ? '+' : ''}${periodRoi}%</td>
+                `;
+                
+                periodTableBody.appendChild(row);
+            }
+            
+            // Generate race predictions
+            const raceTableBody = document.getElementById('raceTableBody');
+            raceTableBody.innerHTML = '';
+            
+            const raceNames = [
+                'Flemington R1', 'Randwick R3', 'Caulfield R2', 'Moonee Valley R5',
+                'Rosehill R4', 'Eagle Farm R2', 'Doomben R6', 'Morphettville R3'
+            ];
+            
+            for (let i = 0; i < 8; i++) {
+                const predicted = Math.floor(Math.random() * 12) + 1;
+                const actual = Math.random() < 0.3 ? predicted : Math.floor(Math.random() * 12) + 1;
+                const correct = predicted === actual;
+                
+                const predictedOdds = (Math.random() * 10 + 2).toFixed(1);
+                const actualOdds = (Math.random() * 10 + 2).toFixed(1);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${raceNames[i]}</td>
+                    <td>Horse ${predicted}</td>
+                    <td>$${predictedOdds}</td>
+                    <td>Horse ${actual}</td>
+                    <td>$${actualOdds}</td>
+                    <td class="${correct ? 'green' : 'red'}">${correct ? 'Correct' : 'Incorrect'}</td>
+                `;
+                
+                raceTableBody.appendChild(row);
+            }
+        }
+
+        function formatDate(date) {
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .progress-container {
+            margin-top: 20px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #444;
+            border-radius: 4px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3a86ff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .button {
+            background-color: #3a86ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #2a75e0;
+        }
+        .button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Progress Bar Test</h1>
+        
+        <div>
+            <p>This is a simple test of the progress bar functionality that was added to the backtesting page.</p>
+            <p>Click the button below to simulate a backtest with progress updates.</p>
+            
+            <button id="startButton" class="button">Start Backtest Simulation</button>
+            
+            <div id="progressContainer" class="progress-container" style="display: none;">
+                <div class="progress-info">
+                    <span id="progressStage">Initializing...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div id="results" style="margin-top: 20px; display: none;">
+                <h3>Backtest Results</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div style="background-color: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 4px;">
+                        <div style="opacity: 0.7; font-size: 14px;">Top-1 Accuracy</div>
+                        <div style="font-size: 20px; font-weight: bold;">32.5%</div>
+                    </div>
+                    <div style="background-color: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 4px;">
+                        <div style="opacity: 0.7; font-size: 14px;">ROI</div>
+                        <div style="font-size: 20px; font-weight: bold; color: #4ade80;">+8.7%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('startButton').addEventListener('click', function() {
+            // Show progress container
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            // Disable the button
+            this.disabled = true;
+            
+            // Hide results if they were shown
+            document.getElementById('results').style.display = 'none';
+            
+            // Simulate progress updates
+            const stages = [
+                { progress: 0, stage: "Initializing..." },
+                { progress: 5, stage: "Uploading file..." },
+                { progress: 10, stage: "Reading file..." },
+                { progress: 20, stage: "Parsing data..." },
+                { progress: 30, stage: "Preparing model..." },
+                { progress: 50, stage: "Running backtest..." },
+                { progress: 60, stage: "Processing period 1 of 5..." },
+                { progress: 70, stage: "Processing period 2 of 5..." },
+                { progress: 80, stage: "Processing period 3 of 5..." },
+                { progress: 85, stage: "Processing period 4 of 5..." },
+                { progress: 90, stage: "Processing period 5 of 5..." },
+                { progress: 95, stage: "Generating race predictions..." },
+                { progress: 98, stage: "Finalizing results..." },
+                { progress: 100, stage: "Complete" }
+            ];
+            
+            let currentStage = 0;
+            
+            function updateProgress() {
+                if (currentStage < stages.length) {
+                    const stage = stages[currentStage];
+                    
+                    // Update progress bar
+                    document.getElementById('progressFill').style.width = stage.progress + '%';
+                    document.getElementById('progressPercent').textContent = stage.progress + '%';
+                    document.getElementById('progressStage').textContent = stage.stage;
+                    
+                    currentStage++;
+                    
+                    // Schedule next update
+                    setTimeout(updateProgress, 800);
+                } else {
+                    // Enable the button
+                    document.getElementById('startButton').disabled = false;
+                    
+                    // Show results
+                    document.getElementById('results').style.display = 'block';
+                }
+            }
+            
+            // Start progress updates
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
