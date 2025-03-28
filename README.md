@@ -10,6 +10,7 @@ A Next.js website for horse racing enthusiasts with prediction tools and compreh
 - Weather and track condition integration
 - Backtesting of prediction models
 - Comprehensive API for racing data
+- CSV data import and analysis
 
 ## Getting Started
 
@@ -34,7 +35,6 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
 ## API Documentation
 
 The Racing Tool provides several APIs for accessing horse racing data:
@@ -43,6 +43,8 @@ The Racing Tool provides several APIs for accessing horse racing data:
 - **Punting Form API**: Direct access to the Punting Form service
 - **Racing Data API**: Access to static mock racing data
 - **Odds API**: Betting odds data
+- **Weather API**: Weather and track condition data
+- **CSV Data API**: Upload, view, and query CSV racing data
 - **Weather API**: Weather and track condition data
 
 For detailed API documentation, see the [API README](API_README.md) or visit the `/api-docs.html` page in your browser.
@@ -55,6 +57,8 @@ The following HTML pages are available for testing the APIs:
 - `/api-direct-test.html` - Test direct API calls to the Punting Form API
 - `/racing-test.html` - Test the Racing Data API
 - `/unified-api-test.html` - Test the Unified Racing API
+- `/csv-data-test.html` - Test the CSV Data API
+- `/api-docs.html` - View the complete API documentation
 
 ## Deploying to Vercel
 
@@ -64,6 +68,11 @@ The easiest way to deploy this Next.js app is to use the [Vercel Platform](https
 2. Import the repository in Vercel.
 3. Vercel will automatically detect that you're using Next.js and will set up the correct build settings.
 4. Your app will be deployed!
+
+If automatic deployments are not triggering, you can manually deploy from the Vercel dashboard:
+1. Go to your project in the Vercel dashboard.
+2. Click on the "Deployments" tab.
+3. Click the "Deploy" button and select "Deploy" from the dropdown.
 
 Current deployment: [https://racing-tool.vercel.app](https://racing-tool.vercel.app)
 
