@@ -35,11 +35,9 @@ export async function GET(request) {
     // Get the endpoint from query parameters
     const endpointParam = searchParams.get('endpoint');
 
-    // --- Updated Base API URL based on documentation ---
-    // Documentation mentions http://www.puntingform.com.au/api/xxxx
-    // Assuming v2 is correct and using HTTPS for security.
-    const apiBaseUrl = 'https://www.puntingform.com.au/api/v2';
-    // --- End URL Update ---
+    // --- Reverted Base API URL based on support examples ---
+    const apiBaseUrl = 'https://api.puntingform.com.au/v2';
+    // --- End URL Revert ---
 
     // Date parameter (default to today)
     const date = searchParams.get('date') || formatDate(new Date());
@@ -65,6 +63,7 @@ export async function GET(request) {
       'X-API-KEY': apiKey // Use the apiKey from query param
     };
 
+    // Construct base URL part for different endpoints
     switch (endpointParam) {
       case 'form/comment':
         apiUrl = `${apiBaseUrl}/form/comment?startDate=${date}`;
@@ -90,38 +89,18 @@ export async function GET(request) {
         break;
       case 'form/fields':
         apiUrl = `${apiBaseUrl}/form/fields?raceDate=${date}`;
-
-        // Add optional parameters if provided
         const trackCode = searchParams.get('trackCode');
         const raceNumber = searchParams.get('raceNumber');
-
-        if (trackCode) {
-          apiUrl += `&trackCode=${trackCode}`;
-        }
-
-        if (raceNumber) {
-          apiUrl += `&raceNumber=${raceNumber}`;
-        }
-
-        // Request CSV format for fields
+        if (trackCode) apiUrl += `&trackCode=${trackCode}`;
+        if (raceNumber) apiUrl += `&raceNumber=${raceNumber}`;
         headers['accept'] = 'text/csv';
         break;
       case 'form/results':
         apiUrl = `${apiBaseUrl}/form/results?startDate=${date}`;
-
-        // Add optional parameters if provided
         const endDate = searchParams.get('endDate');
         const trackCodeResults = searchParams.get('trackCode');
-
-        if (endDate) {
-          apiUrl += `&endDate=${endDate}`;
-        }
-
-        if (trackCodeResults) {
-          apiUrl += `&trackCode=${trackCodeResults}`;
-        }
-
-        // Request CSV format for results
+        if (endDate) apiUrl += `&endDate=${endDate}`;
+        if (trackCodeResults) apiUrl += `&trackCode=${trackCodeResults}`;
         headers['accept'] = 'text/csv';
         break;
       // Map 'races' endpoint for settings test
@@ -136,8 +115,9 @@ export async function GET(request) {
         );
     }
 
-    // Add API key to the URL (Punting Form API requires it in header)
-    // apiUrl += `&apiKey=${apiKey}`; // Redundant
+    // --- Append apiKey to query string as well, based on support example ---
+    apiUrl += `&apiKey=${apiKey}`;
+    // --- End Append Key ---
 
     console.log(`Fetching from Punting Form API: ${apiUrl}`);
 
