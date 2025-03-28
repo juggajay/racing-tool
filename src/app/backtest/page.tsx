@@ -71,25 +71,26 @@ export default function BacktestPage() {
     setResult(null);
     
     try {
-      // Prepare the request data
-      const requestData = {
-        model,
-        timePeriods,
-        bettingStrategy,
-        computationEngine,
-        parallelProcessing,
-        cacheSettings,
-        logLevel,
-        fileName: selectedFile?.name || null
-      };
+      // Check if a file is selected
+      if (!selectedFile) {
+        throw new Error("Please select a file to upload");
+      }
+
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('model', model);
+      formData.append('timePeriods', timePeriods.toString());
+      formData.append('bettingStrategy', bettingStrategy);
+      formData.append('computationEngine', computationEngine);
+      formData.append('parallelProcessing', parallelProcessing);
+      formData.append('cacheSettings', cacheSettings);
+      formData.append('logLevel', logLevel);
       
-      // Call the API
+      // Call the API with FormData
       const response = await fetch('/api/backtest', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestData)
+        body: formData
       });
       
       // Handle the response
@@ -168,7 +169,7 @@ export default function BacktestPage() {
                 label="Upload Dataset (CSV, Excel, or JSON)"
                 helperText="Upload your historical race data for backtesting"
                 onFileChange={handleFileChange}
-                accept=".csv,.xlsx,.json"
+                accept=".csv,.xlsx,.json,.tar"
                 id="dataset-upload"
               />
               {selectedFile && (
