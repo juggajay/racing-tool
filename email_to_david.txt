@@ -1,0 +1,32 @@
+Subject: Follow-up: Punting Form API Integration Issue - `form/meetingslist`
+
+Hi David,
+
+Thanks again for your help with the Punting Form API integration and for enabling the `form/comment` endpoint for testing.
+
+We've made progress, and the API key validation on our application's Settings page is now working correctly. When we test the connection using the `form/comment` endpoint (via our server-side proxy), we get a successful response, confirming the API key itself is being authenticated.
+
+However, we're still facing an issue specifically with fetching the list of race meetings for our "Live Racing" page.
+
+**The Problem:**
+
+When our application calls the `form/meetingslist` endpoint (again, through our server-side proxy hosted on Vercel), it consistently receives a successful HTTP response (200 OK), but the data seems to indicate "No race meetings found". This happens even when we try selecting different dates (e.g., today, yesterday) using the date picker we added.
+
+**Verification Steps:**
+
+*   We are calling the endpoint: `https://api.puntingform.com.au/v2/form/meetingslist`
+*   We are providing the date in `DD-Mon-YYYY` format (e.g., `meetingDate=28-Mar-2025`).
+*   We are sending the API key both in the `X-API-KEY` header and as an `apiKey` query parameter.
+*   The connection test using `form/comment` with the same key works successfully.
+
+**Questions:**
+
+1.  **Data Availability/Timing:** Is there any specific reason the `form/meetingslist` endpoint might return an empty list for recent/current dates? (e.g., Does data only become available at a certain time of day? Are there fewer meetings scheduled currently?)
+2.  **Response Structure:** Could you confirm the exact expected JSON structure for a successful response from `form/meetingslist` when meetings *are* found? Our code currently expects either `{ "meetings": [...] }` or just the array `[...]` directly in the response data. Knowing the correct structure will help us parse it reliably.
+3.  **Serverless Environment:** Are there any known considerations or common issues when calling `form/meetingslist` specifically from a serverless environment like Vercel that might differ from a direct browser call?
+4.  **Key Permissions:** Could you double-check if the API key associated with the account `jaysonryan21@hotmail.com` (or specifically the key ending in `a836` if that's the one being used) definitely has permissions enabled for the `form/meetingslist` endpoint?
+
+We appreciate any insights you can provide to help us resolve this final hurdle in displaying the live meetings data.
+
+Thanks,
+Jayson
