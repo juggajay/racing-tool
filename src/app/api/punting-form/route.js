@@ -26,6 +26,15 @@ const getSettings = () => {
   };
 };
 
+// Format date as DD-Mon-YYYY (e.g., 01-Mar-2025)
+function formatDate(date) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -43,7 +52,7 @@ export async function GET(request) {
     const apiBaseUrl = settings.endpoint || 'https://api.puntingform.com.au/v2';
     
     // Date parameter (default to today)
-    const date = searchParams.get('date') || new Date().toISOString().split('T')[0];
+    const date = searchParams.get('date') || formatDate(new Date());
     
     // Race ID parameter (for GetRatings endpoint)
     const raceId = searchParams.get('raceId');
@@ -70,32 +79,88 @@ export async function GET(request) {
       );
     }
     
-    // Use the mock API instead of trying to call the real API
-    if (!['comment', 'race', 'horse'].includes(endpointParam)) {
-      return Response.json(
-        { error: 'Invalid endpoint. Supported endpoints are: comment, race, horse' },
-        { status: 400 }
-      );
+    // Build the API URL based on the endpoint
+    let apiUrl;
+    let headers = {
+      'accept': 'application/json',
+      'X-API-KEY': apiKey
+    };
+    
+    switch (endpointParam) {
+      case 'form/comment':
+        apiUrl = `${apiBaseUrl}/form/comment?startDate=${date}`;
+        break;
+      case 'race':
+        if (!raceId) {
+          return Response.json(
+            { error: 'Race ID is required for race endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/race?raceid=${raceId}`;
+        break;
+      case 'horse':
+        const horseId = searchParams.get('horseId');
+        if (!horseId) {
+          return Response.json(
+            { error: 'Horse ID is required for horse endpoint' },
+            { status: 400 }
+          );
+        }
+        apiUrl = `${apiBaseUrl}/horse?horseid=${horseId}`;
+        break;
+      case 'form/fields':
+        apiUrl = `${apiBaseUrl}/form/fields?raceDate=${date}`;
+        
+        // Add optional parameters if provided
+        const trackCode = searchParams.get('trackCode');
+        const raceNumber = searchParams.get('raceNumber');
+        
+        if (trackCode) {
+          apiUrl += `&trackCode=${trackCode}`;
+        }
+        
+        if (raceNumber) {
+          apiUrl += `&raceNumber=${raceNumber}`;
+        }
+        
+        // Request CSV format for fields
+        headers['accept'] = 'text/csv';
+        break;
+      case 'form/results':
+        apiUrl = `${apiBaseUrl}/form/results?startDate=${date}`;
+        
+        // Add optional parameters if provided
+        const endDate = searchParams.get('endDate');
+        const trackCodeResults = searchParams.get('trackCode');
+        
+        if (endDate) {
+          apiUrl += `&endDate=${endDate}`;
+        }
+        
+        if (trackCodeResults) {
+          apiUrl += `&trackCode=${trackCodeResults}`;
+        }
+        
+        // Request CSV format for results
+        headers['accept'] = 'text/csv';
+        break;
+      default:
+        return Response.json(
+          { error: 'Invalid endpoint. Supported endpoints are: form/comment, race, horse, form/fields, form/results' },
+          { status: 400 }
+        );
     }
     
-    // Build the mock API URL
-    let mockUrl = `/api/mock?endpoint=${endpointParam}`;
+    // Add API key to the URL
+    apiUrl += `&apiKey=${apiKey}`;
     
-    // Add additional parameters if needed
-    if (endpointParam === 'race' && raceId) {
-      mockUrl += `&raceId=${raceId}`;
-    } else if (endpointParam === 'horse' && searchParams.get('horseId')) {
-      mockUrl += `&horseId=${searchParams.get('horseId')}`;
-    }
+    console.log(`Fetching from Punting Form API: ${apiUrl}`);
     
-    console.log(`Fetching from Mock API: ${mockUrl}`);
-    
-    // Make the request to the mock API
-    const response = await fetch(mockUrl, {
+    // Make the request to the API
+    const response = await fetch(apiUrl, {
       method: 'GET',
-      headers: {
-        'accept': 'application/json'
-      },
+      headers,
       // Add a timeout to prevent hanging
       signal: AbortSignal.timeout(15000) // 15 seconds timeout
     });
@@ -113,7 +178,7 @@ export async function GET(request) {
       console.error('API error response:', {
         status: response.status,
         statusText: response.statusText,
-        url: mockUrl,
+        url: apiUrl,
         errorText
       });
       
@@ -134,6 +199,10 @@ export async function GET(request) {
     
     if (contentType && contentType.includes('application/json')) {
       data = await response.json();
+    } else if (contentType && contentType.includes('text/csv')) {
+      // For CSV responses, return the raw text
+      // The client can use the csvParser utility to parse it
+      data = await response.text();
     } else {
       data = await response.text();
       
@@ -151,7 +220,7 @@ export async function GET(request) {
     return Response.json({
       success: true,
       endpoint: endpointParam,
-      data: data.data || data,
+      data,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

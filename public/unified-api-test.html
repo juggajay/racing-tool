@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Racing API Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #1a73e8;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0d62c9;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+            border: 1px solid red;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 15px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .checkbox-container input {
+            width: auto;
+            margin-right: 10px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: #1a73e8;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Unified Racing API Test</h1>
+    <p>This page allows you to test the Unified Racing API directly in your browser.</p>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="races">Races</div>
+        <div class="tab" data-tab="race">Race</div>
+        <div class="tab" data-tab="horse">Horse</div>
+        <div class="tab" data-tab="results">Results</div>
+    </div>
+    
+    <div class="tab-content active" id="races-tab">
+        <div class="container">
+            <h2>Get Races</h2>
+            
+            <label for="races-date">Date (YYYY-MM-DD):</label>
+            <input type="date" id="races-date">
+            
+            <label for="races-track-code">Track Code (optional):</label>
+            <input type="text" id="races-track-code" placeholder="e.g., FLE for Flemington">
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="races-include-odds" checked>
+                <label for="races-include-odds">Include Odds</label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="races-include-weather" checked>
+                <label for="races-include-weather">Include Weather</label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="races-include-comments" checked>
+                <label for="races-include-comments">Include Comments</label>
+            </div>
+            
+            <button onclick="testRaces()">Test API</button>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="race-tab">
+        <div class="container">
+            <h2>Get Race</h2>
+            
+            <label for="race-id">Race ID:</label>
+            <input type="text" id="race-id" placeholder="Enter Race ID">
+            
+            <label for="race-date">Date (YYYY-MM-DD):</label>
+            <input type="date" id="race-date">
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="race-include-odds" checked>
+                <label for="race-include-odds">Include Odds</label>
+            </div>
+            
+            <div class="checkbox-container">
+                <input type="checkbox" id="race-include-weather" checked>
+                <label for="race-include-weather">Include Weather</label>
+            </div>
+            
+            <button onclick="testRace()">Test API</button>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="horse-tab">
+        <div class="container">
+            <h2>Get Horse</h2>
+            
+            <label for="horse-id">Horse ID:</label>
+            <input type="text" id="horse-id" placeholder="Enter Horse ID">
+            
+            <button onclick="testHorse()">Test API</button>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="results-tab">
+        <div class="container">
+            <h2>Get Results</h2>
+            
+            <label for="results-date">Date (YYYY-MM-DD):</label>
+            <input type="date" id="results-date">
+            
+            <label for="results-track-code">Track Code (optional):</label>
+            <input type="text" id="results-track-code" placeholder="e.g., FLE for Flemington">
+            
+            <button onclick="testResults()">Test API</button>
+        </div>
+    </div>
+    
+    <div id="error" class="error" style="display: none;"></div>
+    
+    <div id="result-container" style="display: none;">
+        <h2>API Response</h2>
+        <pre id="result"></pre>
+    </div>
+    
+    <script>
+        // Set default date to today
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('races-date').value = today;
+            document.getElementById('race-date').value = today;
+            document.getElementById('results-date').value = today;
+        }
+        
+        setDefaultDates();
+        
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show the corresponding tab content
+                const tabName = tab.getAttribute('data-tab');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+        
+        // Helper function to show error
+        function showError(message) {
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+        }
+        
+        // Helper function to show result
+        function showResult(data) {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('result-container').style.display = 'block';
+        }
+        
+        // Test Races API
+        async function testRaces() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const date = document.getElementById('races-date').value;
+            const trackCode = document.getElementById('races-track-code').value;
+            const includeOdds = document.getElementById('races-include-odds').checked;
+            const includeWeather = document.getElementById('races-include-weather').checked;
+            const includeComments = document.getElementById('races-include-comments').checked;
+            
+            // Validate inputs
+            if (!date) {
+                showError('Date is required');
+                return;
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#races-tab button');
+                button.innerHTML = 'Loading... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Build the API URL
+                let apiUrl = `/api/unified-racing?action=races&date=${date}`;
+                
+                if (trackCode) {
+                    apiUrl += `&trackCode=${trackCode}`;
+                }
+                
+                apiUrl += `&includeOdds=${includeOdds}&includeWeather=${includeWeather}&includeComments=${includeComments}`;
+                
+                console.log('Calling API:', apiUrl);
+                
+                // Make the API call
+                const response = await fetch(apiUrl);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#races-tab button');
+                button.innerHTML = 'Test API';
+                button.disabled = false;
+            }
+        }
+        
+        // Test Race API
+        async function testRace() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const raceId = document.getElementById('race-id').value;
+            const date = document.getElementById('race-date').value;
+            const includeOdds = document.getElementById('race-include-odds').checked;
+            const includeWeather = document.getElementById('race-include-weather').checked;
+            
+            // Validate inputs
+            if (!raceId) {
+                showError('Race ID is required');
+                return;
+            }
+            
+            if (!date) {
+                showError('Date is required');
+                return;
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#race-tab button');
+                button.innerHTML = 'Loading... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Build the API URL
+                let apiUrl = `/api/unified-racing?action=race&raceId=${raceId}&date=${date}`;
+                apiUrl += `&includeOdds=${includeOdds}&includeWeather=${includeWeather}`;
+                
+                console.log('Calling API:', apiUrl);
+                
+                // Make the API call
+                const response = await fetch(apiUrl);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#race-tab button');
+                button.innerHTML = 'Test API';
+                button.disabled = false;
+            }
+        }
+        
+        // Test Horse API
+        async function testHorse() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const horseId = document.getElementById('horse-id').value;
+            
+            // Validate inputs
+            if (!horseId) {
+                showError('Horse ID is required');
+                return;
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#horse-tab button');
+                button.innerHTML = 'Loading... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Build the API URL
+                const apiUrl = `/api/unified-racing?action=horse&horseId=${horseId}`;
+                
+                console.log('Calling API:', apiUrl);
+                
+                // Make the API call
+                const response = await fetch(apiUrl);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#horse-tab button');
+                button.innerHTML = 'Test API';
+                button.disabled = false;
+            }
+        }
+        
+        // Test Results API
+        async function testResults() {
+            // Clear previous results
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result-container').style.display = 'none';
+            
+            // Get values from form
+            const date = document.getElementById('results-date').value;
+            const trackCode = document.getElementById('results-track-code').value;
+            
+            // Validate inputs
+            if (!date) {
+                showError('Date is required');
+                return;
+            }
+            
+            try {
+                // Add loading indicator to button
+                const button = document.querySelector('#results-tab button');
+                button.innerHTML = 'Loading... <span class="loading"></span>';
+                button.disabled = true;
+                
+                // Build the API URL
+                let apiUrl = `/api/unified-racing?action=results&date=${date}`;
+                
+                if (trackCode) {
+                    apiUrl += `&trackCode=${trackCode}`;
+                }
+                
+                console.log('Calling API:', apiUrl);
+                
+                // Make the API call
+                const response = await fetch(apiUrl);
+                
+                // Handle response
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API returned status ${response.status}: ${errorText}`);
+                }
+                
+                // Parse and display the response
+                const data = await response.json();
+                showResult(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                // Remove loading indicator
+                const button = document.querySelector('#results-tab button');
+                button.innerHTML = 'Test API';
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

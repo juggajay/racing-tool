@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racing Tool API Documentation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #1a73e8;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .endpoint {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 5px solid #1a73e8;
+        }
+        .method {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .example {
+            margin-top: 10px;
+        }
+        .nav {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .nav a {
+            text-decoration: none;
+            color: #1a73e8;
+            font-weight: 500;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .response-example {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <ul>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#unified-racing-api">Unified Racing API</a></li>
+            <li><a href="#punting-form-api">Punting Form API</a></li>
+            <li><a href="#racing-data-api">Racing Data API</a></li>
+            <li><a href="#odds-api">Odds API</a></li>
+            <li><a href="#weather-api">Weather API</a></li>
+            <li><a href="#test-page">API Test Page</a></li>
+        </ul>
+    </div>
+
+    <h1 id="introduction">Racing Tool API Documentation</h1>
+    <p>
+        This document provides information about the APIs available in the Racing Tool application.
+        These APIs allow you to access horse racing data, odds, weather information, and more.
+    </p>
+
+    <h2 id="unified-racing-api">Unified Racing API</h2>
+    <p>
+        The Unified Racing API combines data from multiple sources to provide a comprehensive racing data endpoint.
+        It integrates race fields, odds, weather, and comments data into a single API.
+    </p>
+
+    <div class="endpoint">
+        <h3>Base URL</h3>
+        <pre>/api/unified-racing</pre>
+
+        <h3>GET Endpoint</h3>
+        <p>The GET endpoint allows you to retrieve racing data based on various parameters.</p>
+
+        <h4>Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Default</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>action</td>
+                <td>The type of data to retrieve: 'races', 'race', 'horse', or 'results'</td>
+                <td>races</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>The date for which to retrieve data in ISO format (YYYY-MM-DD)</td>
+                <td>Today</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>trackCode</td>
+                <td>The code of a specific track (e.g., 'FLE' for Flemington)</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>raceId</td>
+                <td>The ID of a specific race (required for 'race' action)</td>
+                <td>-</td>
+                <td>Yes (for 'race' action)</td>
+            </tr>
+            <tr>
+                <td>horseId</td>
+                <td>The ID of a specific horse (required for 'horse' action)</td>
+                <td>-</td>
+                <td>Yes (for 'horse' action)</td>
+            </tr>
+            <tr>
+                <td>includeOdds</td>
+                <td>Whether to include odds data</td>
+                <td>true</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>includeWeather</td>
+                <td>Whether to include weather data</td>
+                <td>true</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>includeComments</td>
+                <td>Whether to include comments data</td>
+                <td>true</td>
+                <td>No</td>
+            </tr>
+        </table>
+
+        <h4>Examples</h4>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get all races for today:</p>
+            <pre>/api/unified-racing</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get all races for a specific date:</p>
+            <pre>/api/unified-racing?date=2025-03-28</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get races for a specific track:</p>
+            <pre>/api/unified-racing?trackCode=FLE</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get a specific race with all related data:</p>
+            <pre>/api/unified-racing?action=race&raceId=12345</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get details for a specific horse:</p>
+            <pre>/api/unified-racing?action=horse&horseId=6789</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get race results:</p>
+            <pre>/api/unified-racing?action=results&date=2025-03-28</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get races without additional data:</p>
+            <pre>/api/unified-racing?includeOdds=false&includeWeather=false&includeComments=false</pre>
+        </div>
+
+        <h4>Response Example (races action)</h4>
+        <pre class="response-example">{
+  "success": true,
+  "date": "2025-03-28",
+  "action": "races",
+  "timestamp": "2025-03-28T00:45:23.456Z",
+  "data": {
+    "races": [
+      {
+        "id": "FLE_R1",
+        "trackCode": "FLE",
+        "trackName": "Flemington",
+        "raceNumber": "1",
+        "raceTime": "12:30 PM",
+        "raceDistance": "1200",
+        "raceType": "Group 3",
+        "horses": [
+          {
+            "number": "1",
+            "name": "Fast Thunder",
+            "barrier": "2",
+            "weight": "58.5kg",
+            "jockey": "J. Smith",
+            "trainer": "T. Williams",
+            "lastFive": "1-3-2-1-4",
+            "odds": "4.5"
+          },
+          // More horses...
+        ]
+      },
+      // More races...
+    ],
+    "odds": {
+      // Odds data...
+    },
+    "weather": {
+      // Weather data...
+    },
+    "comments": {
+      // Comments data...
+    }
+  }
+}</pre>
+    </div>
+
+    <h2 id="punting-form-api">Punting Form API</h2>
+    <p>
+        The Punting Form API provides access to horse racing data from the Punting Form service.
+        It supports various endpoints for retrieving different types of racing data.
+    </p>
+
+    <div class="endpoint">
+        <h3>Base URL</h3>
+        <pre>/api/punting-form</pre>
+
+        <h4>Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Default</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>endpoint</td>
+                <td>The Punting Form API endpoint to use: 'form/comment', 'race', 'horse', 'form/fields', 'form/results'</td>
+                <td>-</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>The date for which to retrieve data (DD-Mon-YYYY format, e.g., 28-Mar-2025)</td>
+                <td>Today</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>raceId</td>
+                <td>The ID of a specific race (required for 'race' endpoint)</td>
+                <td>-</td>
+                <td>Yes (for 'race' endpoint)</td>
+            </tr>
+            <tr>
+                <td>horseId</td>
+                <td>The ID of a specific horse (required for 'horse' endpoint)</td>
+                <td>-</td>
+                <td>Yes (for 'horse' endpoint)</td>
+            </tr>
+            <tr>
+                <td>trackCode</td>
+                <td>The code of a specific track (for 'form/fields' and 'form/results' endpoints)</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>raceNumber</td>
+                <td>The number of a specific race (for 'form/fields' endpoint)</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>The end date for which to retrieve data (for 'form/results' endpoint)</td>
+                <td>Same as date</td>
+                <td>No</td>
+            </tr>
+        </table>
+
+        <h4>Examples</h4>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get comments for today:</p>
+            <pre>/api/punting-form?endpoint=form/comment</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get a specific race:</p>
+            <pre>/api/punting-form?endpoint=race&raceId=12345</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get details for a specific horse:</p>
+            <pre>/api/punting-form?endpoint=horse&horseId=6789</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get race fields for a specific date:</p>
+            <pre>/api/punting-form?endpoint=form/fields&date=28-Mar-2025</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get race results for a specific date range:</p>
+            <pre>/api/punting-form?endpoint=form/results&date=28-Mar-2025&endDate=29-Mar-2025</pre>
+        </div>
+    </div>
+
+    <h2 id="racing-data-api">Racing Data API</h2>
+    <p>
+        The Racing Data API provides access to horse racing data using static mock data.
+        It offers both GET and POST endpoints for retrieving different types of racing data.
+    </p>
+
+    <div class="endpoint">
+        <h3>Base URL</h3>
+        <pre>/api/racing-data</pre>
+
+        <h4>Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Default</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>endpoint</td>
+                <td>The endpoint to use: 'races', 'horses'</td>
+                <td>races</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>The date for which to retrieve data in ISO format (YYYY-MM-DD)</td>
+                <td>Today</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>track</td>
+                <td>The name of a specific track</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>race_number</td>
+                <td>The number of a specific race</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>horse_id</td>
+                <td>The ID of a specific horse</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+        </table>
+
+        <h4>Examples</h4>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get all races:</p>
+            <pre>/api/racing-data</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get races for a specific track:</p>
+            <pre>/api/racing-data?track=Flemington</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get a specific race:</p>
+            <pre>/api/racing-data?track=Flemington&race_number=1</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get details for a specific horse:</p>
+            <pre>/api/racing-data?endpoint=horses&horse_id=horse_1</pre>
+        </div>
+    </div>
+
+    <h2 id="odds-api">Odds API</h2>
+    <p>
+        The Odds API provides betting odds data for horse races.
+        It offers both GET and POST endpoints for retrieving and analyzing odds data.
+    </p>
+
+    <div class="endpoint">
+        <h3>Base URL</h3>
+        <pre>/api/odds</pre>
+
+        <h4>Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Default</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>race_id</td>
+                <td>The ID of a specific race</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>horse_id</td>
+                <td>The ID of a specific horse</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>bet_type</td>
+                <td>The type of bet: 'win', 'place', 'exacta', 'trifecta'</td>
+                <td>-</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>include_trends</td>
+                <td>Whether to include betting trends data</td>
+                <td>false</td>
+                <td>No</td>
+            </tr>
+        </table>
+
+        <h4>Examples</h4>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get odds for all races:</p>
+            <pre>/api/odds</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get odds for a specific race:</p>
+            <pre>/api/odds?race_id=1</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get win odds for a specific horse:</p>
+            <pre>/api/odds?race_id=1&horse_id=101&bet_type=win</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get odds with betting trends:</p>
+            <pre>/api/odds?race_id=1&include_trends=true</pre>
+        </div>
+    </div>
+
+    <h2 id="weather-api">Weather API</h2>
+    <p>
+        The Weather API provides weather and track condition data for racecourses.
+        It offers both GET and POST endpoints for retrieving and analyzing weather data.
+    </p>
+
+    <div class="endpoint">
+        <h3>Base URL</h3>
+        <pre>/api/weather</pre>
+
+        <h4>Parameters</h4>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Description</th>
+                <th>Default</th>
+                <th>Required</th>
+            </tr>
+            <tr>
+                <td>location</td>
+                <td>The name of the racecourse</td>
+                <td>-</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>The type of data to retrieve: 'track', 'weather', or 'all'</td>
+                <td>all</td>
+                <td>No</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>The date for which to retrieve data in ISO format (YYYY-MM-DD)</td>
+                <td>Today</td>
+                <td>No</td>
+            </tr>
+        </table>
+
+        <h4>Examples</h4>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get weather and track conditions for a specific location:</p>
+            <pre>/api/weather?location=Flemington%20Racecourse</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get only track conditions:</p>
+            <pre>/api/weather?location=Flemington%20Racecourse&type=track</pre>
+        </div>
+
+        <div class="example">
+            <p><span class="method">GET</span> Get weather and track conditions for a specific date:</p>
+            <pre>/api/weather?location=Flemington%20Racecourse&date=2025-03-28</pre>
+        </div>
+    </div>
+
+    <h2 id="test-page">API Test Page</h2>
+    <p>
+        The Racing Tool includes HTML test pages that allow you to test the APIs directly in your browser.
+    </p>
+
+    <ul>
+        <li><a href="/api-test.html" target="_blank">Punting Form API Test</a> - Test the Punting Form API</li>
+        <li><a href="/api-direct-test.html" target="_blank">Direct API Test</a> - Test direct API calls to the Punting Form API</li>
+        <li><a href="/racing-test.html" target="_blank">Racing API Test</a> - Test the Racing Data API</li>
+    </ul>
+
+    <h2>API Key</h2>
+    <p>
+        The APIs use the following API key for authentication with the Punting Form API:
+    </p>
+    <pre>5b0df8bf-da9a-4d1e-995d-9b7a002aa836</pre>
+    <p>
+        In a production environment, this key should be stored securely in environment variables.
+    </p>
+
+    <footer>
+        <p>Australian Horse Racing Prediction System © 2025</p>
+    </footer>
+</body>
+</html>
