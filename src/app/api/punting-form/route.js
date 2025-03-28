@@ -17,6 +17,9 @@ function formatDate(date) {
 }
 
 export async function GET(request) {
+  const requestTimestamp = new Date().toISOString(); // Timestamp for logging
+  console.log(`[${requestTimestamp}] Punting Form Proxy Request Received`);
+
   try {
     const { searchParams } = new URL(request.url);
 
@@ -24,65 +27,39 @@ export async function GET(request) {
     let apiKey = searchParams.get('api_key');
 
     if (!apiKey) {
+       console.error(`[${requestTimestamp}] API Key missing in query parameters.`);
        return Response.json(
-         {
-           error: 'API key is required',
-           message: 'Please provide the Punting Form API key via the api_key query parameter or configure it in settings.'
-         },
+         { error: 'API key is required', message: 'Please provide the Punting Form API key via the api_key query parameter or configure it in settings.' },
          { status: 401 }
        );
     }
     // --- End API Key Handling ---
 
-
-    // Get the endpoint from query parameters (e.g., "form/comment", "Updates/Scratchings", "Ratings/MeetingRatings")
     const endpointParam = searchParams.get('endpoint');
-
-    // Base API URL
     const apiBaseUrl = 'https://api.puntingform.com.au/v2';
-
-    // Date parameter (default to today)
     const date = searchParams.get('date') || formatDate(new Date());
-
-    // Meeting ID parameter (used by several endpoints)
     const meetingId = searchParams.get('meetingId');
-
-    // Race ID parameter
     const raceId = searchParams.get('raceId');
-
-    // Horse ID parameter
     const horseId = searchParams.get('horseId');
-
-    // Track Code parameter
     const trackCode = searchParams.get('trackCode');
-
-    // Race Number parameter
     const raceNumber = searchParams.get('raceNumber');
-
-    // End Date parameter
     const endDate = searchParams.get('endDate');
 
-    // Include barrier trials parameter
-    const includeBarrierTrials = searchParams.get('includeBarrierTrials') === 'true'; // Note: Check if PuntingForm API actually uses this
-
-    // Validate required parameters
     if (!endpointParam) {
-      return Response.json(
-        { error: 'Endpoint parameter is required' },
-        { status: 400 }
-      );
+      console.error(`[${requestTimestamp}] Endpoint parameter missing.`);
+      return Response.json({ error: 'Endpoint parameter is required' }, { status: 400 });
     }
 
-    // Build the API URL based on the endpoint
-    let apiUrl;
-    let headers = {
-      'accept': 'application/json', // Default, might be overridden
-      'X-API-KEY': apiKey
-    };
+    console.log(`[${requestTimestamp}] Processing endpoint: ${endpointParam}, Date: ${date}`);
 
-    // Construct base URL part for different endpoints
-    switch (endpointParam.toLowerCase()) { // Use lowercase for case-insensitivity
-      // FormDataService
+    let apiUrl;
+    let headers = { 'accept': 'application/json', 'X-API-KEY': apiKey };
+
+    switch (endpointParam.toLowerCase()) {
+      case 'form/meetingslist':
+         apiUrl = `${apiBaseUrl}/form/meetingslist?meetingDate=${date}`;
+         break;
+      // ... (other cases remain the same) ...
       case 'form/comment':
         apiUrl = `${apiBaseUrl}/form/comment?startDate=${date}`;
         break;
@@ -103,89 +80,89 @@ export async function GET(request) {
       case 'form/results':
         apiUrl = `${apiBaseUrl}/form/results?startDate=${date}`;
         if (endDate) apiUrl += `&endDate=${endDate}`;
-        if (trackCode) apiUrl += `&trackCode=${trackCode}`; // Assuming trackCode is used here too
+        if (trackCode) apiUrl += `&trackCode=${trackCode}`;
         headers['accept'] = 'text/csv';
         break;
-      case 'form/meetingslist': // Added based on support email example
-         apiUrl = `${apiBaseUrl}/form/meetingslist?meetingDate=${date}`;
-         break;
-      case 'form/meeting': // Added based on support email example
+      case 'form/meeting':
          if (!meetingId) return Response.json({ error: 'Meeting ID (meetingId) is required for form/meeting endpoint' }, { status: 400 });
          apiUrl = `${apiBaseUrl}/form/meeting?meetingId=${meetingId}`;
          break;
-      case 'form/form': // Added based on support email example
+      case 'form/form':
          if (!meetingId) return Response.json({ error: 'Meeting ID (meetingId) is required for form/form endpoint' }, { status: 400 });
          apiUrl = `${apiBaseUrl}/form/form?meetingId=${meetingId}`;
          break;
-
-      // ScratchingsService
-      case 'updates/scratchings': // Assuming endpoint path from docs/support email
-        apiUrl = `${apiBaseUrl}/Updates/Scratchings?apiKey=${apiKey}`; // Scratchings might only need apiKey
-        // Add optional date filter if needed and supported by the actual API
-        // if (date) apiUrl += `&meetingDate=${date}`;
+      case 'updates/scratchings':
+        apiUrl = `${apiBaseUrl}/Updates/Scratchings?apiKey=${apiKey}`; // Keep key here for this one based on example
+        // Re-add date parameter if needed, check Punting Form docs for exact param name
+        // apiUrl += `&meetingDate=${date}`;
         break;
-
-      // RatingsService
-      case 'ratings/meetingratings': // Assuming endpoint path from docs/support email
+      case 'ratings/meetingratings':
         if (!meetingId) return Response.json({ error: 'Meeting ID (meetingId) is required for Ratings/MeetingRatings endpoint' }, { status: 400 });
         apiUrl = `${apiBaseUrl}/Ratings/MeetingRatings?meetingId=${meetingId}`;
         break;
-
-      // Map 'races' endpoint for settings test
       case 'races':
-         console.warn("'/api/punting-form?endpoint=races' called (likely from settings test). Mapping to 'form/comment'.");
+         console.warn(`[${requestTimestamp}] '/api/punting-form?endpoint=races' called. Mapping to 'form/comment'.`);
          apiUrl = `${apiBaseUrl}/form/comment?startDate=${date}`;
          break;
-
       default:
-        return Response.json(
-          { error: `Invalid or unsupported endpoint '${endpointParam}'.` },
-          { status: 400 }
-        );
+        console.error(`[${requestTimestamp}] Invalid endpoint requested: ${endpointParam}`);
+        return Response.json({ error: `Invalid or unsupported endpoint '${endpointParam}'.` }, { status: 400 });
     }
 
-    // Append apiKey to query string as well (belt and suspenders)
+    // Append apiKey to query string as well
     apiUrl += `&apiKey=${apiKey}`;
 
-    console.log(`Fetching from Punting Form API: ${apiUrl}`);
+    console.log(`[${requestTimestamp}] Fetching from Punting Form API URL: ${apiUrl}`);
 
     // Make the request to the API
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers,
-      signal: AbortSignal.timeout(15000) // 15 seconds timeout
-    });
+    const response = await fetch(apiUrl, { method: 'GET', headers, signal: AbortSignal.timeout(15000) });
+    const responseStatus = response.status;
+    const responseStatusText = response.statusText;
+    const responseContentType = response.headers.get('content-type');
+    let responseBodyText = ''; // Variable to store raw response
+
+    console.log(`[${requestTimestamp}] Punting Form API Response Status: ${responseStatus} ${responseStatusText}`);
+
+    try {
+        responseBodyText = await response.text(); // Read raw response first
+    } catch (e) {
+        responseBodyText = '(Could not read response body)';
+        console.error(`[${requestTimestamp}] Error reading response body:`, e);
+    }
+
+    // Log raw response only for meetingslist for debugging, limit length
+    if (endpointParam.toLowerCase() === 'form/meetingslist') {
+        console.log(`[${requestTimestamp}] Raw response for meetingslist (truncated): ${responseBodyText.substring(0, 500)}`);
+    }
 
     // Check if the response is successful
     if (!response.ok) {
-      let errorText = '';
-      try { errorText = await response.text(); } catch (e) { errorText = 'Could not extract error details'; }
-      console.error('Punting Form API error response:', { status: response.status, statusText: response.statusText, url: apiUrl, errorText });
-      if (response.status === 401 || (errorText && errorText.includes('Authentication Failed'))) {
-         return Response.json({ error: 'Authentication Failed', message: 'Invalid Punting Form API key provided.', details: errorText.substring(0, 200) }, { status: 401 });
+      console.error(`[${requestTimestamp}] Punting Form API error response details:`, { status: responseStatus, statusText: responseStatusText, url: apiUrl, body: responseBodyText.substring(0, 500) });
+      if (responseStatus === 401 || responseBodyText.includes('Authentication Failed')) {
+         return Response.json({ error: 'Authentication Failed', message: 'Invalid Punting Form API key provided.', details: responseBodyText.substring(0, 200) }, { status: 401 });
       }
-      return Response.json({ error: 'Punting Form API request failed', status: response.status, statusText: response.statusText, details: errorText.substring(0, 200) }, { status: response.status });
+      return Response.json({ error: 'Punting Form API request failed', status: responseStatus, statusText: responseStatusText, details: responseBodyText.substring(0, 200) }, { status: responseStatus });
     }
 
-    // Parse the response based on the content type
+    // Parse the response based on the content type (using the raw text we already read)
     let data;
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json();
-    } else if (contentType && contentType.includes('text/csv')) {
-      data = await response.text();
+    if (responseContentType && responseContentType.includes('application/json')) {
+      try { data = JSON.parse(responseBodyText); } catch (e) { console.error(`[${requestTimestamp}] Failed to parse JSON response:`, e, responseBodyText.substring(0,500)); data = { parseError: e.message, raw: responseBodyText.substring(0,500) }; }
+    } else if (responseContentType && responseContentType.includes('text/csv')) {
+      data = responseBodyText;
     } else {
-      data = await response.text();
+      data = responseBodyText;
       if (data.startsWith('{') || data.startsWith('[')) {
         try { data = JSON.parse(data); } catch (e) { /* Keep as text */ }
       }
     }
 
     // Return the data
-    return Response.json({ success: true, endpoint: endpointParam, data, timestamp: new Date().toISOString() });
+    console.log(`[${requestTimestamp}] Successfully processed endpoint ${endpointParam}.`);
+    return Response.json({ success: true, endpoint: endpointParam, data, timestamp: requestTimestamp }); // Use request timestamp
 
   } catch (error) {
-    console.error('Punting Form Proxy API error:', error);
+    console.error(`[${requestTimestamp}] Punting Form Proxy API error:`, error);
      if (error.name === 'TimeoutError') {
        return Response.json({ error: 'Request Timeout', message: 'The request to the Punting Form API timed out after 15 seconds.' }, { status: 504 });
      }
