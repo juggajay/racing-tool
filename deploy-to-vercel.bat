@@ -26,7 +26,10 @@ echo.
 echo Deployment process completed.
 echo.
 echo If the deployment was successful, your project should be available at:
-echo https://racing-tool.vercel.app
+echo https://horses.vercel.app
+echo.
+echo You can also manage your project at:
+echo https://vercel.com/juggajays-projects/horses
 echo.
 echo If you encountered any issues, please check the Vercel dashboard for more information.
 echo https://vercel.com/dashboard

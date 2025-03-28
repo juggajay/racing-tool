@@ -74,7 +74,7 @@ If automatic deployments are not triggering, you can manually deploy from the Ve
 2. Click on the "Deployments" tab.
 3. Click the "Deploy" button and select "Deploy" from the dropdown.
 
-Current deployment: [https://racing-tool.vercel.app](https://racing-tool.vercel.app)
+Current deployment: [https://horses.vercel.app](https://horses.vercel.app)
 
 ## Troubleshooting Vercel Deployment
 
