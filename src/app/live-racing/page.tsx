@@ -206,35 +206,66 @@ function MeetingsList({
   if (meetings && meetings.length > 0) {
     console.log('First meeting structure:', meetings[0]);
   }
-  
   // Display the meetings if found
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      {meetings.map((meeting, index) => {
-        // Extract meeting properties with fallbacks
-        const meetingId = meeting.meetingId || meeting.id || index;
-        const meetingName = meeting.meetingName || meeting.name || meeting.venue || '-';
-        const trackName = meeting.trackName || meeting.track || meeting.venue || '-';
-        const location = meeting.location || meeting.city || meeting.region || '-';
-        const state = meeting.state || meeting.region || '-';
-        const raceCount = meeting.raceCount || meeting.races?.length || meeting.numberOfRaces || 'Races';
-        
-        return (
-          <div key={meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200 flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-1">{meetingName}</h3>
-              <p className="text-sm text-gray-400 mb-2">{trackName} - {location}, {state}</p>
-              <p className="text-sm text-gray-500 mb-3">{raceCount} Races</p>
-            </div>
-            {/* TODO: Link to a future meeting details page */}
-            <Link href={`/races/meeting/${meetingId}`} className="mt-auto">
-               <Button variant="outline" size="sm" className="w-full">View Races</Button>
-            </Link>
-          </div>
-        );
-      })}
-    </div>
-  );
+  try {
+    console.log('Rendering meetings:', meetings);
+    
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {meetings.map((meeting, index) => {
+          try {
+            // Extract meeting properties with fallbacks
+            const meetingId = meeting.meetingId || meeting.id || index;
+            const meetingName = meeting.meetingName || meeting.name || meeting.venue || '-';
+            const trackName = meeting.trackName || meeting.track || meeting.venue || '-';
+            const location = meeting.location || meeting.city || meeting.region || '-';
+            const state = meeting.state || meeting.region || '-';
+            const raceCount = meeting.raceCount || meeting.races?.length || meeting.numberOfRaces || 'Races';
+            
+            return (
+              <div key={meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">{meetingName}</h3>
+                  <p className="text-sm text-gray-400 mb-2">{trackName} - {location}, {state}</p>
+                  <p className="text-sm text-gray-500 mb-3">{raceCount} Races</p>
+                </div>
+                {/* TODO: Link to a future meeting details page */}
+                <Link href={`/races/meeting/${meetingId}`} className="mt-auto">
+                   <Button variant="outline" size="sm" className="w-full">View Races</Button>
+                </Link>
+              </div>
+            );
+          } catch (err) {
+            console.error('Error rendering meeting:', err, meeting);
+            return (
+              <div key={index} className="bg-gray-900 p-4 rounded-lg border border-red-800 hover:border-red-500 transition-colors duration-200 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-red-500 mb-1">Error Rendering Meeting</h3>
+                  <p className="text-sm text-gray-400 mb-2">There was an error rendering this meeting</p>
+                </div>
+                <div className="mt-auto">
+                  <Button variant="outline" size="sm" className="w-full text-red-500">Error</Button>
+                </div>
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+  } catch (err) {
+    console.error('Error rendering meetings list:', err);
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-500 mb-4">Error rendering meetings list</div>
+        <div className="text-sm text-gray-500 mb-6">
+          There was an error rendering the meetings list. Please try again later.
+        </div>
+        <pre className="text-xs text-gray-600 bg-gray-900 p-4 rounded-lg overflow-auto max-w-full">
+          {err.toString()}
+        </pre>
+      </div>
+    );
+  }
 }
 
 export default function LiveRacingPage() {
