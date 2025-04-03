@@ -48,7 +48,17 @@ function formatDateForApi(dateString: string): string {
 
 
 // Component to display meetings for a selected date
-function MeetingsList({ selectedDate }: { selectedDate: string }) {
+function MeetingsList({
+  selectedDate,
+  setSelectedDate,
+  getYesterdayString,
+  getTomorrowString
+}: {
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+  getYesterdayString: () => string;
+  getTomorrowString: () => string;
+}) {
   const formattedDate = formatDateForApi(selectedDate);
   // Fetch meetings list for the selected date using the hook
   // Skip fetch if formattedDate is empty (e.g., invalid input)
@@ -58,14 +68,40 @@ function MeetingsList({ selectedDate }: { selectedDate: string }) {
     !formattedDate // Skip if date is invalid/empty
   );
 
-  // Handle potential response structures based on Punting Form API documentation
-  const meetings: Meeting[] | null = (data && data.payload && Array.isArray(data.payload))
-                                      ? data.payload
-                                      : (data && Array.isArray(data.meetings))
-                                        ? data.meetings
-                                        : (Array.isArray(data))
-                                          ? data
-                                          : null;
+  // Handle potential response structures based on actual API response
+  let meetings: Meeting[] | null = null;
+  
+  // Try to extract meetings from various possible response structures
+  if (data) {
+    if (data.payload && Array.isArray(data.payload)) {
+      // Structure: { payload: [...meetings] }
+      meetings = data.payload;
+    } else if (data.meetings && Array.isArray(data.meetings)) {
+      // Structure: { meetings: [...meetings] }
+      meetings = data.meetings;
+    } else if (Array.isArray(data)) {
+      // Structure: [...meetings]
+      meetings = data;
+    } else if (data.data && Array.isArray(data.data)) {
+      // Structure: { data: [...meetings] }
+      meetings = data.data;
+    } else if (data.results && Array.isArray(data.results)) {
+      // Structure: { results: [...meetings] }
+      meetings = data.results;
+    } else if (typeof data === 'object' && Object.keys(data).length > 0) {
+      // If data is an object with properties, check if any property is an array
+      // that might contain meetings
+      for (const key in data) {
+        if (Array.isArray(data[key]) && data[key].length > 0 &&
+            data[key][0] && typeof data[key][0] === 'object' &&
+            (data[key][0].meetingId || data[key][0].trackName)) {
+          meetings = data[key];
+          console.log(`Found meetings array in property: ${key}`);
+          break;
+        }
+      }
+    }
+  }
   
   // Log the data structure for debugging
   console.log('Punting Form API response structure:', {
@@ -102,14 +138,38 @@ function MeetingsList({ selectedDate }: { selectedDate: string }) {
             <li>There might be an issue with the API connection</li>
           </ul>
         </div>
+        {/* Try different dates buttons */}
+        <div className="flex justify-center gap-2 mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDate(getYesterdayString())}
+          >
+            Try Yesterday
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setSelectedDate(getTomorrowString())}
+          >
+            Try Tomorrow
+          </Button>
+        </div>
+        
         <div className="text-xs text-gray-600">
           API Response Debug Info: {JSON.stringify({
             hasData: !!data,
             dataType: data ? typeof data : 'undefined',
+            dataKeys: data ? Object.keys(data) : [],
             hasPayload: !!(data && data.payload),
             payloadType: (data && data.payload) ? typeof data.payload : 'undefined',
             isPayloadArray: !!(data && data.payload && Array.isArray(data.payload)),
-            payloadLength: (data && data.payload && Array.isArray(data.payload)) ? data.payload.length : 0
+            payloadLength: (data && data.payload && Array.isArray(data.payload)) ? data.payload.length : 0,
+            hasMeetings: !!(data && data.meetings),
+            meetingsType: (data && data.meetings) ? typeof data.meetings : 'undefined',
+            isMeetingsArray: !!(data && data.meetings && Array.isArray(data.meetings)),
+            meetingsLength: (data && data.meetings && Array.isArray(data.meetings)) ? data.meetings.length : 0,
+            rawData: data ? JSON.stringify(data).substring(0, 200) + '...' : 'null'
           }, null, 2)}
         </div>
       </div>
@@ -203,7 +263,12 @@ export default function LiveRacingPage() {
            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 text-center">
              Race Meetings for {formatDateForApi(selectedDate) || 'Selected Date'}
            </h2>
-           <MeetingsList selectedDate={selectedDate} />
+           <MeetingsList
+             selectedDate={selectedDate}
+             setSelectedDate={setSelectedDate}
+             getYesterdayString={getYesterdayString}
+             getTomorrowString={getTomorrowString}
+           />
          </div>
       </section>
 

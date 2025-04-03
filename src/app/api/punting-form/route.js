@@ -170,10 +170,11 @@ export async function GET(request) {
         responseBodyText = '(Could not read response body)';
         console.error(`[${requestTimestamp}] Error reading response body:`, e);
     }
-
-    // Log raw response only for meetingslist for debugging, limit length
-    if (endpointParam.toLowerCase() === 'form/meetingslist') {
-        console.log(`[${requestTimestamp}] Raw response for meetingslist (truncated): ${responseBodyText.substring(0, 500)}`);
+// Log raw response only for meetingslist for debugging, limit length
+if (endpointParam.toLowerCase() === 'form/meetingslist') {
+    console.log(`[${requestTimestamp}] Raw response for meetingslist (truncated): ${responseBodyText.substring(0, 500)}`);
+    console.log(`[${requestTimestamp}] Response content type: ${responseContentType}`);
+    
         
         // Try to parse the response to see its structure
         try {
