@@ -26,6 +26,10 @@ interface Meeting {
   races?: any[];
   numberOfRaces?: number;
   
+  // Properties from the API response
+  payload?: any[];
+  payLoad?: any[]; // Note the capital 'L'
+  
   // Allow any other properties
   [key: string]: any;
 }
@@ -89,6 +93,9 @@ function MeetingsList({
     if (data.payload && Array.isArray(data.payload)) {
       // Structure: { payload: [...meetings] }
       meetings = data.payload;
+    } else if (data.payLoad && Array.isArray(data.payLoad)) {
+      // Structure: { payLoad: [...meetings] } - note the capital 'L'
+      meetings = data.payLoad;
     } else if (data.meetings && Array.isArray(data.meetings)) {
       // Structure: { meetings: [...meetings] }
       meetings = data.meetings;
@@ -121,6 +128,8 @@ function MeetingsList({
     hasData: !!data,
     hasPayload: !!(data && data.payload),
     isPayloadArray: !!(data && data.payload && Array.isArray(data.payload)),
+    hasPayLoadCapital: !!(data && data.payLoad),
+    isPayLoadCapitalArray: !!(data && data.payLoad && Array.isArray(data.payLoad)),
     hasMeetings: !!(data && data.meetings),
     isMeetingsArray: !!(data && data.meetings && Array.isArray(data.meetings)),
     isDataArray: !!(data && Array.isArray(data)),
@@ -178,6 +187,10 @@ function MeetingsList({
             payloadType: (data && data.payload) ? typeof data.payload : 'undefined',
             isPayloadArray: !!(data && data.payload && Array.isArray(data.payload)),
             payloadLength: (data && data.payload && Array.isArray(data.payload)) ? data.payload.length : 0,
+            hasPayLoadCapital: !!(data && data.payLoad),
+            payLoadCapitalType: (data && data.payLoad) ? typeof data.payLoad : 'undefined',
+            isPayLoadCapitalArray: !!(data && data.payLoad && Array.isArray(data.payLoad)),
+            payLoadCapitalLength: (data && data.payLoad && Array.isArray(data.payLoad)) ? data.payLoad.length : 0,
             hasMeetings: !!(data && data.meetings),
             meetingsType: (data && data.meetings) ? typeof data.meetings : 'undefined',
             isMeetingsArray: !!(data && data.meetings && Array.isArray(data.meetings)),
