@@ -204,7 +204,7 @@ function MeetingsList({
 
   // Log the actual structure of the first meeting for debugging
   if (meetings && meetings.length > 0) {
-    console.log('First meeting structure:', meetings[0]);
+    console.log('First meeting structure:', JSON.stringify(meetings[0], null, 2));
   }
   // Display the meetings if found
   try {
