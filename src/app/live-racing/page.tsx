@@ -58,12 +58,25 @@ function MeetingsList({ selectedDate }: { selectedDate: string }) {
     !formattedDate // Skip if date is invalid/empty
   );
 
-  // Handle potential response structures
-  const meetings: Meeting[] | null = (data && Array.isArray(data.meetings))
-                                      ? data.meetings
-                                      : (Array.isArray(data))
-                                        ? data
-                                        : null;
+  // Handle potential response structures based on Punting Form API documentation
+  const meetings: Meeting[] | null = (data && data.payload && Array.isArray(data.payload))
+                                      ? data.payload
+                                      : (data && Array.isArray(data.meetings))
+                                        ? data.meetings
+                                        : (Array.isArray(data))
+                                          ? data
+                                          : null;
+  
+  // Log the data structure for debugging
+  console.log('Punting Form API response structure:', {
+    hasData: !!data,
+    hasPayload: !!(data && data.payload),
+    isPayloadArray: !!(data && data.payload && Array.isArray(data.payload)),
+    hasMeetings: !!(data && data.meetings),
+    isMeetingsArray: !!(data && data.meetings && Array.isArray(data.meetings)),
+    isDataArray: !!(data && Array.isArray(data)),
+    meetingsCount: meetings ? meetings.length : 0
+  });
 
   if (!formattedDate) {
      return <div className="text-center text-yellow-500 py-8">Please select a valid date.</div>;
@@ -78,7 +91,29 @@ function MeetingsList({ selectedDate }: { selectedDate: string }) {
   }
 
   if (!meetings || meetings.length === 0) {
-    return <div className="text-center text-gray-400 py-8">No race meetings found for {formattedDate}.</div>;
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-4">No race meetings found for {formattedDate}.</div>
+        <div className="text-sm text-gray-500 mb-6">
+          This could be because:
+          <ul className="list-disc list-inside mt-2 space-y-1">
+            <li>There are no scheduled race meetings for this date</li>
+            <li>The API data hasn't been updated yet</li>
+            <li>There might be an issue with the API connection</li>
+          </ul>
+        </div>
+        <div className="text-xs text-gray-600">
+          API Response Debug Info: {JSON.stringify({
+            hasData: !!data,
+            dataType: data ? typeof data : 'undefined',
+            hasPayload: !!(data && data.payload),
+            payloadType: (data && data.payload) ? typeof data.payload : 'undefined',
+            isPayloadArray: !!(data && data.payload && Array.isArray(data.payload)),
+            payloadLength: (data && data.payload && Array.isArray(data.payload)) ? data.payload.length : 0
+          }, null, 2)}
+        </div>
+      </div>
+    );
   }
 
   // Display the meetings if found
@@ -103,13 +138,28 @@ function MeetingsList({ selectedDate }: { selectedDate: string }) {
 
 export default function LiveRacingPage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  const [isTestingDates, setIsTestingDates] = useState<boolean>(false);
+  const [testResults, setTestResults] = useState<{date: string, hasData: boolean}[]>([]);
+
+  // Helper functions to get yesterday and tomorrow dates
+  const getYesterdayString = (): string => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+  };
+
+  const getTomorrowString = (): string => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+  };
 
   return (
     <main className="flex min-h-screen flex-col p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold">Live Racing</h1>
          {/* Date Picker */}
-         <div className="flex items-center gap-2">
+         <div className="flex flex-col sm:flex-row items-center gap-2">
              <label htmlFor="meetingDate" className="text-sm font-medium">Select Date:</label>
              <input
                  type="date"
@@ -118,6 +168,33 @@ export default function LiveRacingPage() {
                  onChange={(e) => setSelectedDate(e.target.value)}
                  className="px-3 py-1 rounded-md bg-white/5 border border-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
              />
+             {/* Quick date navigation buttons */}
+             <div className="flex gap-2 mt-2 sm:mt-0 sm:ml-2">
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setSelectedDate(getYesterdayString())}
+                 className="text-xs"
+               >
+                 Yesterday
+               </Button>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setSelectedDate(getTodayDateString())}
+                 className="text-xs"
+               >
+                 Today
+               </Button>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setSelectedDate(getTomorrowString())}
+                 className="text-xs"
+               >
+                 Tomorrow
+               </Button>
+             </div>
          </div>
       </div>
 

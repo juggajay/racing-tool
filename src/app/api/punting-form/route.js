@@ -84,7 +84,16 @@ export async function GET(request) {
     switch (endpointParam.toLowerCase()) { // Use lowercase for case-insensitivity
       // FormDataService
       case 'form/meetingslist':
-         apiUrl = `${apiBaseUrl}/form/meetingslist?meetingDate=${date}`;
+         // If a specific date is provided, use it
+         if (date) {
+            apiUrl = `${apiBaseUrl}/form/meetingslist?meetingDate=${date}`;
+            console.log(`[${requestTimestamp}] Using provided date for meetingslist: ${date}`);
+         } else {
+            // If no date is provided, default to today
+            const today = formatDate(new Date());
+            apiUrl = `${apiBaseUrl}/form/meetingslist?meetingDate=${today}`;
+            console.log(`[${requestTimestamp}] Using default date (today) for meetingslist: ${today}`);
+         }
          break;
       case 'form/comment':
         apiUrl = `${apiBaseUrl}/form/comment?startDate=${date}`;
@@ -165,6 +174,28 @@ export async function GET(request) {
     // Log raw response only for meetingslist for debugging, limit length
     if (endpointParam.toLowerCase() === 'form/meetingslist') {
         console.log(`[${requestTimestamp}] Raw response for meetingslist (truncated): ${responseBodyText.substring(0, 500)}`);
+        
+        // Try to parse the response to see its structure
+        try {
+            const parsedResponse = JSON.parse(responseBodyText);
+            console.log(`[${requestTimestamp}] Parsed meetingslist response structure:`, {
+                status: parsedResponse.status,
+                statusCode: parsedResponse.statusCode,
+                hasError: !!parsedResponse.error,
+                errorMessage: parsedResponse.error,
+                hasPayload: !!parsedResponse.payload,
+                payloadType: parsedResponse.payload ? typeof parsedResponse.payload : 'undefined',
+                isPayloadArray: Array.isArray(parsedResponse.payload),
+                payloadLength: Array.isArray(parsedResponse.payload) ? parsedResponse.payload.length : 0
+            });
+            
+            // If payload is empty array, log a more specific message
+            if (Array.isArray(parsedResponse.payload) && parsedResponse.payload.length === 0) {
+                console.log(`[${requestTimestamp}] Punting Form API returned empty meetings array for date: ${date}`);
+            }
+        } catch (e) {
+            console.error(`[${requestTimestamp}] Failed to parse meetingslist response for logging:`, e);
+        }
     }
 
     // Check if the response is successful
@@ -179,7 +210,28 @@ export async function GET(request) {
     // Parse the response based on the content type
     let data;
     if (responseContentType && responseContentType.includes('application/json')) {
-      try { data = JSON.parse(responseBodyText); } catch (e) { console.error(`[${requestTimestamp}] Failed to parse JSON response:`, e, responseBodyText.substring(0,500)); data = { parseError: e.message, raw: responseBodyText.substring(0,500) }; }
+      try {
+        data = JSON.parse(responseBodyText);
+        
+        // Special handling for meetingslist endpoint based on API documentation
+        if (endpointParam.toLowerCase() === 'form/meetingslist') {
+          console.log(`[${requestTimestamp}] Meetingslist response structure:`, {
+            hasPayload: !!data.payload,
+            isPayloadArray: !!(data.payload && Array.isArray(data.payload)),
+            payloadLength: data.payload ? data.payload.length : 0
+          });
+          
+          // If the response has a payload property and it's an array, that's where the meetings are
+          if (data.payload && Array.isArray(data.payload)) {
+            console.log(`[${requestTimestamp}] Found ${data.payload.length} meetings in payload array`);
+          } else {
+            console.log(`[${requestTimestamp}] No meetings found in payload or payload is not an array`);
+          }
+        }
+      } catch (e) {
+        console.error(`[${requestTimestamp}] Failed to parse JSON response:`, e, responseBodyText.substring(0,500));
+        data = { parseError: e.message, raw: responseBodyText.substring(0,500) };
+      }
     } else if (responseContentType && responseContentType.includes('text/csv')) {
       data = responseBodyText;
     } else {
