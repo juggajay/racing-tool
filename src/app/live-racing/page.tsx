@@ -19,7 +19,7 @@ interface Meeting {
   // Alternative property names that might be in the API response
   id?: number;
   name?: string;
-  track?: string;
+  track?: Track;
   venue?: string;
   city?: string;
   region?: string;
@@ -32,6 +32,16 @@ interface Meeting {
   
   // Allow any other properties
   [key: string]: any;
+}
+
+interface Track {
+  name: string;
+  trackId: string;
+  location: string;
+  state: string;
+  country: string;
+  abbrev: string;
+  surface: string | null;
 }
 
 // Helper function to format date as YYYY-MM-DD for date input default
@@ -216,11 +226,11 @@ function MeetingsList({
           try {
             // Extract meeting properties with fallbacks
             const meetingId = meeting.meetingId || meeting.id || index;
-            const meetingName = meeting.meetingName || meeting.name || meeting.venue || '-';
-            const trackName = meeting.trackName || meeting.track || meeting.venue || '-';
-            const location = meeting.location || meeting.city || meeting.region || '-';
-            const state = meeting.state || meeting.region || '-';
-            const raceCount = meeting.raceCount || meeting.races?.length || meeting.numberOfRaces || 'Races';
+            const meetingName = meeting.track?.name || meeting.name || meeting.venue || '-';
+            const trackName = meeting.track?.name || meeting.track || meeting.venue || '-';
+            const location = meeting.track?.location || meeting.city || meeting.region || '-';
+            const state = meeting.track?.state || meeting.region || '-';
+            const raceCount = meeting.races?.length || meeting.numberOfRaces || 'Races';
             
             return (
               <div key={meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200 flex flex-col justify-between">
