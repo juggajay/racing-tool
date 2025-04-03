@@ -7,14 +7,27 @@ import { usePuntingFormApi } from '@/hooks/usePuntingFormApi';
 
 // Define interface for meeting data (based on Punting Form API structure)
 interface Meeting {
-  meetingId: number;
-  meetingName: string;
-  trackName: string;
-  location: string;
-  state: string;
-  meetingDate: string; // e.g., "2025-03-28T00:00:00"
-  raceCount: number;
-  // Add other relevant fields if needed
+  // Original expected properties
+  meetingId?: number;
+  meetingName?: string;
+  trackName?: string;
+  location?: string;
+  state?: string;
+  meetingDate?: string; // e.g., "2025-03-28T00:00:00"
+  raceCount?: number;
+  
+  // Alternative property names that might be in the API response
+  id?: number;
+  name?: string;
+  track?: string;
+  venue?: string;
+  city?: string;
+  region?: string;
+  races?: any[];
+  numberOfRaces?: number;
+  
+  // Allow any other properties
+  [key: string]: any;
 }
 
 // Helper function to format date as YYYY-MM-DD for date input default
@@ -176,22 +189,37 @@ function MeetingsList({
     );
   }
 
+  // Log the actual structure of the first meeting for debugging
+  if (meetings && meetings.length > 0) {
+    console.log('First meeting structure:', meetings[0]);
+  }
+  
   // Display the meetings if found
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-      {meetings.map((meeting) => (
-        <div key={meeting.meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200 flex flex-col justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-1">{meeting.meetingName}</h3>
-            <p className="text-sm text-gray-400 mb-2">{meeting.trackName} - {meeting.location}, {meeting.state}</p>
-            <p className="text-sm text-gray-500 mb-3">{meeting.raceCount} Races</p>
+      {meetings.map((meeting, index) => {
+        // Extract meeting properties with fallbacks
+        const meetingId = meeting.meetingId || meeting.id || index;
+        const meetingName = meeting.meetingName || meeting.name || meeting.venue || '-';
+        const trackName = meeting.trackName || meeting.track || meeting.venue || '-';
+        const location = meeting.location || meeting.city || meeting.region || '-';
+        const state = meeting.state || meeting.region || '-';
+        const raceCount = meeting.raceCount || meeting.races?.length || meeting.numberOfRaces || 'Races';
+        
+        return (
+          <div key={meetingId} className="bg-gray-900 p-4 rounded-lg border border-gray-800 hover:border-indigo-500 transition-colors duration-200 flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-1">{meetingName}</h3>
+              <p className="text-sm text-gray-400 mb-2">{trackName} - {location}, {state}</p>
+              <p className="text-sm text-gray-500 mb-3">{raceCount} Races</p>
+            </div>
+            {/* TODO: Link to a future meeting details page */}
+            <Link href={`/races/meeting/${meetingId}`} className="mt-auto">
+               <Button variant="outline" size="sm" className="w-full">View Races</Button>
+            </Link>
           </div>
-          {/* TODO: Link to a future meeting details page */}
-          <Link href={`/races/meeting/${meeting.meetingId}`} className="mt-auto">
-             <Button variant="outline" size="sm" className="w-full">View Races</Button>
-          </Link>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
