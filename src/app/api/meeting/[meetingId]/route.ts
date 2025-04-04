@@ -28,37 +28,39 @@ export async function GET(
     if (!response.ok) {
       console.error(`API request failed: ${response.status} ${response.statusText}`);
       
-      // If API request fails, return sample data as fallback
-      const sampleData = {
-        meeting: {
-          meetingId: meetingId,
-          name: "Sample Race Meeting",
-          track: {
-            name: "Sample Track",
-            location: "Sample City",
-            state: "Sample State"
+      // If API request fails, create a structured meeting object as fallback
+      const meeting = {
+        meetingId: meetingId,
+        name: "Sample Race Meeting",
+        track: {
+          name: "Sample Track",
+          location: "Sample City",
+          state: "Sample State"
+        },
+        meetingDate: "2025-04-04T00:00:00",
+        races: [
+          {
+            raceId: 12345,
+            raceNumber: 1,
+            raceName: "Sample Race 1",
+            distance: 1200,
+            numberOfRunners: 10
           },
-          meetingDate: "2025-04-04T00:00:00",
-          races: [
-            {
-              raceId: 12345,
-              raceNumber: 1,
-              raceName: "Sample Race 1",
-              distance: 1200,
-              numberOfRunners: 10
-            },
-            {
-              raceId: 12346,
-              raceNumber: 2,
-              raceName: "Sample Race 2",
-              distance: 1400,
-              numberOfRunners: 8
-            }
-          ]
-        }
+          {
+            raceId: 12346,
+            raceNumber: 2,
+            raceName: "Sample Race 2",
+            distance: 1400,
+            numberOfRunners: 8
+          }
+        ]
       };
       
-      return NextResponse.json(sampleData);
+      console.log('Using sample fallback data:', meeting);
+      
+      return NextResponse.json({
+        meeting: meeting
+      });
     }
     
     const data = await response.json();
@@ -83,43 +85,60 @@ export async function GET(
     // This will depend on the actual structure of the Punting Form API response
     // You may need to adjust this based on the actual API response
     
-    // Wrap the API response in a meeting property to match the expected format
+    // Create a properly structured meeting object from the API response
+    const meeting = {
+      meetingId: meetingId,
+      name: data.track?.name || "Race Meeting",
+      track: {
+        name: data.track?.name || "Unknown Track",
+        location: data.track?.location || "Unknown Location",
+        state: data.track?.state || "Unknown State"
+      },
+      meetingDate: data.meetingDate || new Date().toISOString(),
+      races: Array.isArray(data.races) ? data.races : []
+    };
+    
+    console.log('Structured meeting data:', meeting);
+    
+    // Return the structured meeting data
     return NextResponse.json({
-      meeting: data
+      meeting: meeting
     });
   } catch (error) {
     console.error('Error fetching meeting data:', error);
     
-    // Return sample data as fallback in case of error
-    const sampleData = {
-      meeting: {
-        meetingId: meetingId,
-        name: "Sample Race Meeting (Error Fallback)",
-        track: {
-          name: "Sample Track",
-          location: "Sample City",
-          state: "Sample State"
+    // Create a structured meeting object as fallback in case of error
+    const meeting = {
+      meetingId: meetingId,
+      name: "Sample Race Meeting (Error Fallback)",
+      track: {
+        name: "Sample Track",
+        location: "Sample City",
+        state: "Sample State"
+      },
+      meetingDate: "2025-04-04T00:00:00",
+      races: [
+        {
+          raceId: 12345,
+          raceNumber: 1,
+          raceName: "Sample Race 1",
+          distance: 1200,
+          numberOfRunners: 10
         },
-        meetingDate: "2025-04-04T00:00:00",
-        races: [
-          {
-            raceId: 12345,
-            raceNumber: 1,
-            raceName: "Sample Race 1",
-            distance: 1200,
-            numberOfRunners: 10
-          },
-          {
-            raceId: 12346,
-            raceNumber: 2,
-            raceName: "Sample Race 2",
-            distance: 1400,
-            numberOfRunners: 8
-          }
-        ]
-      }
+        {
+          raceId: 12346,
+          raceNumber: 2,
+          raceName: "Sample Race 2",
+          distance: 1400,
+          numberOfRunners: 8
+        }
+      ]
     };
     
-    return NextResponse.json(sampleData);
+    console.log('Using error fallback data:', meeting);
+    
+    return NextResponse.json({
+      meeting: meeting
+    });
   }
 }
