@@ -68,8 +68,10 @@ export async function GET(
     // This will depend on the actual structure of the Punting Form API response
     // You may need to adjust this based on the actual API response
     
-    // For now, we'll assume the API returns data in a format similar to our sample data
-    return NextResponse.json(data);
+    // Wrap the API response in a meeting property to match the expected format
+    return NextResponse.json({
+      meeting: data
+    });
   } catch (error) {
     console.error('Error fetching meeting data:', error);
     
