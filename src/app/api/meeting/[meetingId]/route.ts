@@ -41,22 +41,7 @@ export async function GET(
           state: "Sample State"
         },
         meetingDate: "2025-04-04T00:00:00",
-        races: [
-          {
-            raceId: 12345,
-            raceNumber: 1,
-            raceName: "Sample Race 1",
-            distance: 1200,
-            numberOfRunners: 10
-          },
-          {
-            raceId: 12346,
-            raceNumber: 2,
-            raceName: "Sample Race 2",
-            distance: 1400,
-            numberOfRunners: 8
-          }
-        ]
+        races: []
       };
       
       console.log('Using sample fallback data:', apiErrorFallbackMeeting);
@@ -110,11 +95,11 @@ export async function GET(
     
     console.log('Found meeting:', meeting);
     
-    let races = [];
-    
     // Extract race IDs from the meeting data
     const raceIds = meeting.races ? meeting.races.map(race => race.raceId || race.id) : [];
     console.log(`Extracted race IDs: ${raceIds.join(', ')}`);
+    
+    let races = [];
     
     // Fetch race details for each race ID
     if (raceIds.length > 0) {
