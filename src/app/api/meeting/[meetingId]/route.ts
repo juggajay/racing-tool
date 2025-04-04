@@ -62,7 +62,22 @@ export async function GET(
     }
     
     const data = await response.json();
-    console.log('API response received:', data);
+    console.log('API response received:', JSON.stringify(data, null, 2));
+    
+    // Log the structure of the data
+    console.log('API response structure:', {
+      hasData: !!data,
+      dataType: typeof data,
+      dataKeys: Object.keys(data),
+      hasTrack: !!data.track,
+      trackType: data.track ? typeof data.track : 'undefined',
+      trackKeys: data.track ? Object.keys(data.track) : [],
+      hasMeetingDate: !!data.meetingDate,
+      meetingDateType: data.meetingDate ? typeof data.meetingDate : 'undefined',
+      hasRaces: !!data.races,
+      racesType: data.races ? typeof data.races : 'undefined',
+      racesLength: data.races && Array.isArray(data.races) ? data.races.length : 0
+    });
     
     // Process the API response to match the expected format
     // This will depend on the actual structure of the Punting Form API response
