@@ -23,14 +23,13 @@ export async function GET(
     // We'll get all meetings and then filter for the specific meeting ID
     const today = new Date();
     const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][today.getMonth()]}-${today.getFullYear()}`;
-    const apiUrl = `https://api.puntingform.com.au/v2/form/meetingslist?meetingDate=${formattedDate}&apiKey=${apiKey}`;
+    const meetingsUrl = `https://api.puntingform.com.au/v2/form/meetingslist?meetingDate=${formattedDate}&apiKey=${apiKey}`;
     
     console.log(`Fetching meetings list for date: ${formattedDate} to find meeting ID: ${meetingId}`);
-    const response = await fetch(apiUrl);
+    const meetingsResponse = await fetch(meetingsUrl);
     
-    if (!response.ok) {
-      console.error(`API request failed: ${response.status} ${response.statusText}`);
-      console.error(`API request failed: ${response.status} ${response.statusText}`);
+    if (!meetingsResponse.ok) {
+      console.error(`Meetings API request failed: ${meetingsResponse.status} ${meetingsResponse.statusText}`);
       
       // If API request fails, create a structured meeting object as fallback
       const apiErrorFallbackMeeting = {
@@ -67,19 +66,19 @@ export async function GET(
       });
     }
     
-    const responseData = await response.json();
-    console.log('API response received:', JSON.stringify(responseData, null, 2));
+    const meetingsData = await meetingsResponse.json();
+    console.log('API response received:', JSON.stringify(meetingsData, null, 2));
     
     // Extract meetings from the response
     let meetings = null;
-    if (responseData.data && responseData.data.payLoad && Array.isArray(responseData.data.payLoad)) {
-      meetings = responseData.data.payLoad;
-    } else if (responseData.payLoad && Array.isArray(responseData.payLoad)) {
-      meetings = responseData.payLoad;
-    } else if (responseData.data && Array.isArray(responseData.data)) {
-      meetings = responseData.data;
-    } else if (Array.isArray(responseData)) {
-      meetings = responseData;
+    if (meetingsData.data && meetingsData.data.payLoad && Array.isArray(meetingsData.data.payLoad)) {
+      meetings = meetingsData.data.payLoad;
+    } else if (meetingsData.payLoad && Array.isArray(meetingsData.payLoad)) {
+      meetings = meetingsData.payLoad;
+    } else if (meetingsData.data && Array.isArray(meetingsData.data)) {
+      meetings = meetingsData.data;
+    } else if (Array.isArray(meetingsData)) {
+      meetings = meetingsData;
     }
     
     console.log(`Found ${meetings ? meetings.length : 0} meetings in the response`);
@@ -126,6 +125,45 @@ export async function GET(
     
     console.log('Found meeting:', meeting);
     
+    // Now fetch the races for this meeting using the form/fields endpoint
+    const fieldsUrl = `https://api.puntingform.com.au/v2/form/fields?meetingDate=${formattedDate}&apiKey=${apiKey}`;
+    console.log(`Fetching races for meeting ID: ${meetingId} using fields endpoint`);
+    
+    let races = [];
+    try {
+      const fieldsResponse = await fetch(fieldsUrl);
+      
+      if (fieldsResponse.ok) {
+        const fieldsData = await fieldsResponse.json();
+        console.log('Fields API response received');
+        
+        // Extract races from the fields data
+        // The structure might vary, so we need to handle different possibilities
+        let allRaces = [];
+        if (fieldsData.data && fieldsData.data.payLoad && Array.isArray(fieldsData.data.payLoad)) {
+          allRaces = fieldsData.data.payLoad;
+        } else if (fieldsData.payLoad && Array.isArray(fieldsData.payLoad)) {
+          allRaces = fieldsData.payLoad;
+        } else if (fieldsData.data && Array.isArray(fieldsData.data)) {
+          allRaces = fieldsData.data;
+        } else if (Array.isArray(fieldsData)) {
+          allRaces = fieldsData;
+        }
+        
+        // Filter races for the current meeting
+        races = allRaces.filter(race =>
+          race.meetingId === meetingId ||
+          String(race.meetingId) === String(meetingId)
+        );
+        
+        console.log(`Found ${races.length} races for meeting ID: ${meetingId}`);
+      } else {
+        console.error(`Fields API request failed: ${fieldsResponse.status} ${fieldsResponse.statusText}`);
+      }
+    } catch (fieldsError) {
+      console.error('Error fetching races data:', fieldsError);
+    }
+    
     // Process the API response to match the expected format
     // This will depend on the actual structure of the Punting Form API response
     // You may need to adjust this based on the actual API response
@@ -140,7 +178,13 @@ export async function GET(
         state: meeting.track?.state || "Unknown State"
       },
       meetingDate: meeting.meetingDate || new Date().toISOString(),
-      races: Array.isArray(meeting.races) ? meeting.races : []
+      races: races.length > 0 ? races.map(race => ({
+        raceId: race.raceId || race.id,
+        raceNumber: race.raceNumber || race.number,
+        raceName: race.raceName || race.name || `Race ${race.raceNumber || race.number || ''}`,
+        distance: race.distance || 0,
+        numberOfRunners: race.numberOfRunners || race.runners?.length || 0
+      })) : []
     };
     
     console.log('Structured meeting data:', structuredMeeting);
